@@ -1,5 +1,6 @@
 from DataLoading import *
-from InitialCostModel import costModel
+from InitialCostModel import costModel_complete
+from Initial_Cost_Model_simple import costModel_PW_WU
 
 demandData = demandFile('./given_data/demanddata.xlsx')
 vCost = varCost('./given_data/variablecosts.xlsx')
@@ -8,7 +9,7 @@ fCost = fixedCost('./given_data/fixedcosts.xlsx')
 
 demandData
 
-simpleModel = costModel(
+simpleModel = costModel_PW_WU(
     W = demandData.W,
     P = demandData.P,
     cap = demandData.capacity,
