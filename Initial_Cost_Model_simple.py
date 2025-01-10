@@ -16,6 +16,8 @@ class costModel_PW_WU():
         self.K = K
         self.c = c
         self.f = f
+
+        self.solvedModel = None
         
         self.M = max(self.supply.sum(),self.demand.sum())
         
@@ -119,10 +121,18 @@ class costModel_PW_WU():
         
         model.optimize()
 
+        self.x_pw_values_all = {key: var.X for key, var in X_PW.items()}
+        self.x_wu_values_all = {key: var.X for key, var in X_WU.items()}
+        self.y_pw_values_all = {key: var.X for key, var in Y_PW.items()}
+        self.y_wu_values_all = {key: var.X for key, var in Y_WU.items()}
+
+
         self.x_pw_values = {key: var.X for key, var in X_PW.items() if var.X > 0}
         self.x_wu_values = {key: var.X for key, var in X_WU.items() if var.X > 0}
         self.y_pw_values = {key: var.X for key, var in Y_PW.items() if var.X > 0}
         self.y_wu_values = {key: var.X for key, var in Y_WU.items() if var.X > 0}
+
+        self.solvedModel = model
 
         return model
     
