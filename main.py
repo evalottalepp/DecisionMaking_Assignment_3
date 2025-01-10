@@ -1,7 +1,29 @@
-from DataLoading import demandFile
+from DataLoading import *
+from InitialCostModel import costModel
 
-demandData = demandFile('demanddata.xlsx')
-
+demandData = demandFile('./given_data/demanddata.xlsx')
+vCost = varCost('./given_data/variablecosts.xlsx')
+fCost = fixedCost('./given_data/fixedcosts.xlsx') 
 # demandData.printFile()
 
-print(demandData.demand)
+demandData
+
+simpleModel = costModel(
+    W = demandData.W,
+    P = demandData.P,
+    cap = demandData.capacity,
+    U = demandData.U,
+    K = demandData.K,
+    c = vCost.varCost,
+    f = fCost.fixedCost,
+    demand = demandData.demand,
+    supply = demandData.supply
+)
+
+
+simpleModel.model()
+
+simpleModel.visualize_results()
+
+simpleModel.summarize_results()
+
