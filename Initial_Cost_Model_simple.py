@@ -77,19 +77,21 @@ class costModel_PW_WU():
                 )
 
         # Cannot send more than handled by warehouse
-        for p in self.P:
-            for w in self.W:
+        ######################### THis is what is stated in the assingment but may not be correct
+        for w in self.W:
+            for p in self.P: 
                 model.addConstr(
                     gb.quicksum([X_PW[p,w,k] for k in self.K])
                     <= (self.cap[w] * Y_PW[p,w])
                 )
-                
+
                 model.addConstr(
                     gb.quicksum([X_PW[p,w,k] for k in self.K])
                     <= (gb.quicksum([self.supply[p,k] for k in self.K])*Y_PW[p,w])
                 )
 
         # Books sent from warehouse are less than capacity and demand
+        ######################### THis is what is stated in the assingment but may not be correct
         for w in self.W:
             for u in self.U:
                 model.addConstr(
@@ -104,19 +106,19 @@ class costModel_PW_WU():
 
 
 
-        # remove cross docks
-        crossDocks = self.W[2:]
-        for c in crossDocks:
-            for p in self.P:
-                model.addConstr(
-                                gb.quicksum([X_PW[p,c,k] for k in self.K])
-                                == 0
-                                )
-            for u in self.U:
-                model.addConstr(
-                                gb.quicksum([X_WU[c,u,k] for k in self.K])
-                                == 0
-                                )
+        # # remove cross docks
+        # crossDocks = self.W[2:]
+        # for c in crossDocks:
+        #     for p in self.P:
+        #         model.addConstr(
+        #                         gb.quicksum([X_PW[p,c,k] for k in self.K])
+        #                         == 0
+        #                         )
+        #     for u in self.U:
+        #         model.addConstr(
+        #                         gb.quicksum([X_WU[c,u,k] for k in self.K])
+        #                         == 0
+        #                         )
 
         
         model.optimize()
@@ -191,14 +193,14 @@ class costModel_PW_WU():
 
     def summarize_results(self):
         x_pw_table = pd.DataFrame([
-            {"From Printer": p, "To Warehouse": w, "Flow": flow}
+            {"From Printer": p, "To Warehouse": w, "Flow": flow, "Book":k}
             for (p, w,k), flow in self.x_pw_values.items()
         ])
         print("Flow Summary (Printers to Warehouses):")
         print(x_pw_table)
 
         x_wu_table = pd.DataFrame([
-            {"From Warehouse": w, "To University": u, "Flow": flow}
+            {"From Warehouse": w, "To University": u, "Flow": flow, "Book:" : k}
             for (w, u,k), flow in self.x_wu_values.items()
         ])
         print("\nFlow Summary (Warehouses to Universities):")

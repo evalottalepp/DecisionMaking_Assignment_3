@@ -11,10 +11,10 @@ fCost = fixedCost('./given_data/fixedcosts.xlsx')
 demandData
 
 simpleModel = costModel_PW_WU(
-    W = demandData.W,
+    W = demandData.W[:2],  ## Removes the cross docks
     P = demandData.P,
     cap = demandData.capacity,
-    U = demandData.U,
+    U = [demandData.U[0]],   ## Change this to which universities you want, give it a list
     K = demandData.K,
     c = vCost.varCost,
     f = fCost.fixedCost,
@@ -25,9 +25,9 @@ simpleModel = costModel_PW_WU(
 
 model  = simpleModel.model()
 
-# simpleModel.visualize_results()
+simpleModel.visualize_results()
 
-# simpleModel.summarize_results()
+simpleModel.summarize_results()
 
 modelCosts = Costs(simpleModel)
 
