@@ -4,18 +4,19 @@ from gurobipy import GRB
 import networkx as nx
 import matplotlib.pyplot as plt
 import pandas as pd
+import itertools
 
 class costModel_PW_WU():
     def __init__(self,W,P,cap,U,K,c,f,demand,supply):
-        self.W = W
-        self.P = P
+        self.W = W  # warehouses
+        self.P = P  # printers
         self.supply = supply
-        self.cap = cap
-        self.demand = demand
-        self.U = U
-        self.K = K
-        self.c = c
-        self.f = f
+        self.cap = cap  # capacities
+        self.demand = demand 
+        self.U = U  # universities
+        self.K = K  # book types
+        self.c = c  # variable costs
+        self.f = f  #fixed costs
 
         self.solvedModel = None
         
@@ -103,6 +104,12 @@ class costModel_PW_WU():
                     gb.quicksum([X_WU[w,u,k] for k in self.K])
                     <= (gb.quicksum([self.demand[u,k] for k in self.K])*Y_WU[w,u])
                 )
+
+        # Added capacity constraint for the warehouses - the total inflow of books from all printers must not be more than warehouse capacity
+        # This is not relevant for when only one university is considered, rather when all of them are considered
+        for w in self.W:
+            model.addConstr(
+                gb.quicksum(X_PW[p,w,k] for p in self.P for k in self.K) <= self.cap[w], name=f"capacity_{w}")
 
 
 
