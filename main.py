@@ -15,7 +15,7 @@ demandData
 start = time.time()
 
 simpleModel = costModel_PW_WU(
-    W = demandData.W[:2],  ## Removes the cross docks
+    W = demandData.W,  ## Removes the cross docks
     P = demandData.P,
     cap = demandData.capacity,
     U = demandData.U,   ## Change this to which universities you want, give it a list
