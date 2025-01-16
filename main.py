@@ -2,6 +2,8 @@ from DataLoading import *
 from InitialCostModel import costModel_complete
 from Initial_Cost_Model_simple import costModel_PW_WU
 from CostsCalc import Costs
+from allocateCosts import allocateCost
+import time
 
 demandData = demandFile('./given_data/demanddata.xlsx')
 vCost = varCost('./given_data/variablecosts.xlsx')
@@ -9,6 +11,8 @@ fCost = fixedCost('./given_data/fixedcosts.xlsx')
 # demandData.printFile()
 
 demandData
+
+start = time.time()
 
 simpleModel = costModel_PW_WU(
     W = demandData.W[:2],  ## Removes the cross docks
@@ -29,11 +33,21 @@ simpleModel.visualize_results()
 
 simpleModel.summarize_results()
 
-modelCosts = Costs(simpleModel)
+end = time.time()
 
-uniCosts = pd.DataFrame(modelCosts.U_Costs).transpose()
-uniCosts.columns = ['Total Cost', 'Printer To Warehouse', 'Warehouse to University']
+print(f'Time for Model: {(end-start)}')
 
-print(uniCosts)
-print(f'Total Costs from all Universities = {round(uniCosts["Total Cost"].sum(),0)}')
-print(f'Total Model Costs = {round(modelCosts.modelCost,0)}')
+# modelCosts = Costs(simpleModel)
+
+# uniCosts = pd.DataFrame(modelCosts.U_Costs).transpose()
+# uniCosts.columns = ['Total Cost', 'Printer To Warehouse', 'Warehouse to University']
+
+# print(uniCosts)
+# print(f'Total Costs from all Universities = {round(uniCosts["Total Cost"].sum(),0)}')
+# print(f'Total Model Costs = {round(modelCosts.modelCost,0)}')
+
+
+## 1.2 Allocate Costs ##
+
+# shapleyValues = allocateCost(demandData.U)
+# print(shapleyValues.shapleyValues)

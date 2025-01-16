@@ -27,6 +27,9 @@ class costModel_PW_WU():
         self.bookEdges = [(i,j,k) for i in range(self.nLocations) for j in range(self.nLocations) for k in self.K]
 
     
+    def set_U(self,U):
+        self.U = U
+
     def model(self):
 
         model = gb.Model('Cost Model')
@@ -153,23 +156,22 @@ class costModel_PW_WU():
         G.add_nodes_from(self.P, type="Printer", color="green")
         G.add_nodes_from(self.U, type="University", color="red")
 
+        # Dictionary to store aggregated flow values for edge labels
+        edge_flows = {}
+
         # Add edges for flows from printers to warehouses
-        for (p, w,k), flow in self.x_pw_values.items():
-            G.add_edge(p, w, weight=flow, color="black")
+        for (p, w, k), flow in self.x_pw_values.items():
+            if (p, w) not in edge_flows:
+                edge_flows[(p, w)] = 0
+            edge_flows[(p, w)] += flow
+            G.add_edge(p, w, color="black")  # Add edge without weight for visualization
 
         # Add edges for flows from warehouses to universities
-        for (w, u,k), flow in self.x_wu_values.items():
-            G.add_edge(w, u, weight=flow, color="black")
-
-        # Add active connections for Y_PW
-        for (p, w), active in self.y_pw_values.items():
-            if active > 0:
-                G.add_edge(p, w, color="red", style="dashed")
-
-        # Add active connections for Y_WU
-        for (w, u), active in self.y_wu_values.items():
-            if active > 0:
-                G.add_edge(w, u, color="red", style="dashed")
+        for (w, u, k), flow in self.x_wu_values.items():
+            if (w, u) not in edge_flows:
+                edge_flows[(w, u)] = 0
+            edge_flows[(w, u)] += flow
+            G.add_edge(w, u, color="black")  # Add edge without weight for visualization
 
         # Define positions for nodes
         pos = {}
@@ -180,7 +182,8 @@ class costModel_PW_WU():
         for idx, u in enumerate(self.U):
             pos[u] = (2, idx - len(self.U) // 2)
 
-        edge_labels = {(i, j): f"{G[i][j]['weight']:.2f}" for i, j in G.edges if 'weight' in G[i][j]}
+        # Create edge labels based on aggregated flows
+        edge_labels = {edge: f"{flow:.2f}" for edge, flow in edge_flows.items()}
 
         # Draw nodes
         colors = [data['color'] for _, data in G.nodes(data=True)]
@@ -190,9 +193,16 @@ class costModel_PW_WU():
         edge_colors = [G[u][v]['color'] for u, v in G.edges]
         nx.draw_networkx_edges(G, pos, edge_color=edge_colors)
 
-        # Draw labels
+            # Draw labels
         nx.draw_networkx_labels(G, pos)
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+        nx.draw_networkx_edge_labels(
+            G,
+            pos,
+            edge_labels=edge_labels,
+            font_size=8,
+            label_pos=0.65,  # Position of the label along the edge (0.5 is default)
+            bbox=dict(boxstyle="round,pad=0.3", edgecolor="none", facecolor="white", alpha=0.7),
+        )
 
         plt.title("Optimization Results: Flow and Connections")
         plt.show()
