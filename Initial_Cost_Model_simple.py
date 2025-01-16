@@ -26,6 +26,9 @@ class costModel_PW_WU():
         self.bookEdges = [(i,j,k) for i in range(self.nLocations) for j in range(self.nLocations) for k in self.K]
 
     
+    def set_U(self,U):
+        self.U = U
+
     def model(self):
 
         model = gb.Model('Cost Model')
