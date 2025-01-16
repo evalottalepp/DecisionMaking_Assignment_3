@@ -2,6 +2,7 @@ from DataLoading import *
 from InitialCostModel import costModel_complete
 from Initial_Cost_Model_simple import costModel_PW_WU
 from CostsCalc import Costs
+from allocateCosts import allocateCost
 import time
 
 demandData = demandFile('./given_data/demanddata.xlsx')
@@ -34,7 +35,7 @@ model  = simpleModel.model()
 
 end = time.time()
 
-print(f'Time for Model: {600*(end-start)}')
+print(f'Time for Model: {(end-start)}')
 
 modelCosts = Costs(simpleModel)
 
@@ -45,3 +46,8 @@ print(uniCosts)
 print(f'Total Costs from all Universities = {round(uniCosts["Total Cost"].sum(),0)}')
 print(f'Total Model Costs = {round(modelCosts.modelCost,0)}')
 
+
+## 1.2 Allocate Costs ##
+
+shapleyValues = allocateCost(demandData.U)
+print(shapleyValues.shapleyValues)
