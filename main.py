@@ -3,6 +3,7 @@ from InitialCostModel import costModel_complete
 from Initial_Cost_Model_simple import costModel_PW_WU
 from CostsCalc import Costs
 from allocateCosts import allocateCost
+from Collab_2_1_b_c import collaboration
 import time
 
 demandData = demandFile('./given_data/demanddata.xlsx')
@@ -10,32 +11,30 @@ vCost = varCost('./given_data/variablecosts.xlsx')
 fCost = fixedCost('./given_data/fixedcosts.xlsx') 
 # demandData.printFile()
 
-demandData
+# start = time.time()
 
-start = time.time()
-
-simpleModel = costModel_PW_WU(
-    W = demandData.W,  ## Removes the cross docks
-    P = demandData.P,
-    cap = demandData.capacity,
-    U = demandData.U,   ## Change this to which universities you want, give it a list
-    K = demandData.K,
-    c = vCost.varCost,
-    f = fCost.fixedCost,
-    demand = demandData.demand,
-    supply = demandData.supply
-)
+# simpleModel = costModel_PW_WU(
+#     W = demandData.W,  ## Removes the cross docks
+#     P = demandData.P,
+#     cap = demandData.capacity,
+#     U = demandData.U,   ## Change this to which universities you want, give it a list
+#     K = demandData.K,
+#     c = vCost.varCost,
+#     f = fCost.fixedCost,
+#     demand = demandData.demand,
+#     supply = demandData.supply
+# )
 
 
-model  = simpleModel.model()
+# model  = simpleModel.model()
 
-simpleModel.visualize_results()
+# simpleModel.visualize_results()
 
-simpleModel.summarize_results()
+# simpleModel.summarize_results()
 
-end = time.time()
+# end = time.time()
 
-print(f'Time for Model: {(end-start)}')
+# print(f'Time for Model: {(end-start)}')
 
 # modelCosts = Costs(simpleModel)
 
@@ -51,3 +50,8 @@ print(f'Time for Model: {(end-start)}')
 
 # shapleyValues = allocateCost(demandData.U)
 # print(shapleyValues.shapleyValues)
+
+
+## 2.1 Collaboration ##
+
+shapelys = collaboration(demandData,vCost,fCost)
