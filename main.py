@@ -29,25 +29,25 @@ simpleModel = costModel_PW_WU(
 
 model  = simpleModel.model()
 
-# simpleModel.visualize_results()
+simpleModel.visualize_results()
 
-# simpleModel.summarize_results()
+simpleModel.summarize_results()
 
 end = time.time()
 
 print(f'Time for Model: {(end-start)}')
 
-modelCosts = Costs(simpleModel)
+# modelCosts = Costs(simpleModel)
 
-uniCosts = pd.DataFrame(modelCosts.U_Costs).transpose()
-uniCosts.columns = ['Total Cost', 'Printer To Warehouse', 'Warehouse to University']
+# uniCosts = pd.DataFrame(modelCosts.U_Costs).transpose()
+# uniCosts.columns = ['Total Cost', 'Printer To Warehouse', 'Warehouse to University']
 
-print(uniCosts)
-print(f'Total Costs from all Universities = {round(uniCosts["Total Cost"].sum(),0)}')
-print(f'Total Model Costs = {round(modelCosts.modelCost,0)}')
+# print(uniCosts)
+# print(f'Total Costs from all Universities = {round(uniCosts["Total Cost"].sum(),0)}')
+# print(f'Total Model Costs = {round(modelCosts.modelCost,0)}')
 
 
 ## 1.2 Allocate Costs ##
 
-shapleyValues = allocateCost(demandData.U)
-print(shapleyValues.shapleyValues)
+# shapleyValues = allocateCost(demandData.U)
+# print(shapleyValues.shapleyValues)
