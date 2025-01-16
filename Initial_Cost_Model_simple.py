@@ -116,19 +116,19 @@ class costModel_PW_WU():
 
 
 
-        # # remove cross docks
-        # crossDocks = self.W[2:]
-        # for c in crossDocks:
-        #     for p in self.P:
-        #         model.addConstr(
-        #                         gb.quicksum([X_PW[p,c,k] for k in self.K])
-        #                         == 0
-        #                         )
-        #     for u in self.U:
-        #         model.addConstr(
-        #                         gb.quicksum([X_WU[c,u,k] for k in self.K])
-        #                         == 0
-        #                         )
+        # remove cross docks
+        crossDocks = self.W[2:]
+        for c in crossDocks:
+            for p in self.P:
+                model.addConstr(
+                                gb.quicksum([X_PW[p,c,k] for k in self.K])
+                                == 0
+                                )
+            for u in self.U:
+                model.addConstr(
+                                gb.quicksum([X_WU[c,u,k] for k in self.K])
+                                == 0
+                                )
 
         
         model.optimize()
@@ -209,29 +209,40 @@ class costModel_PW_WU():
 
 
     def summarize_results(self):
+
+        mapper_pwu = {0: "P1", 1: "P2", 2: "P3", 3: "W1", 4: "W2", 5: "C1", 6: "C2",
+                  7: "C3", 8: "U1", 9: "U2", 10: "U3", 11: "U4", 12: "U5"}
+        mapper_b = {0: "1", 1: "2", 2: "3", 3: "4", 4: "5", 5: "6"}
+
+        def map_pwu(id):
+            return mapper_pwu.get(id)
+    
+        def map_book(id):
+            return mapper_b.get(id)
+        
         x_pw_table = pd.DataFrame([
-            {"From Printer": p, "To Warehouse": w, "Flow": flow, "Book":k}
+            {"From Printer": map_pwu(p), "To Warehouse": map_pwu(w), "Flow": flow, "Book": map_book(k)}
             for (p, w,k), flow in self.x_pw_values.items()
         ])
         print("Flow Summary (Printers to Warehouses):")
         print(x_pw_table)
 
         x_wu_table = pd.DataFrame([
-            {"From Warehouse": w, "To University": u, "Flow": flow, "Book:" : k}
+            {"From Warehouse": map_pwu(w), "To University": map_pwu(u), "Flow": flow, "Book:" : map_book(k)}
             for (w, u,k), flow in self.x_wu_values.items()
         ])
         print("\nFlow Summary (Warehouses to Universities):")
         print(x_wu_table)
 
         y_pw_table = pd.DataFrame([
-            {"From Printer": p, "To Warehouse": w, "Active": active}
+            {"From Printer": map_pwu(p), "To Warehouse": map_pwu(w), "Active": active}
             for (p, w), active in self.y_pw_values.items()
         ])
         print("\nActive Connections (Printers to Warehouses):")
         print(y_pw_table)
 
         y_wu_table = pd.DataFrame([
-            {"From Warehouse": w, "To University": u, "Active": active}
+            {"From Warehouse": map_pwu(w), "To University": map_pwu(u), "Active": active}
             for (w, u), active in self.y_wu_values.items()
         ])
         print("\nActive Connections (Warehouses to Universities):")
