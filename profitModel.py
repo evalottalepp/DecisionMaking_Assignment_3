@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import itertools
 
-class profitModel():
+class profitModels():
     def __init__(self,W,P,cap,U,K,c,f,demand,supply):
         self.W = W  # warehouses
         self.P = P  # printers
@@ -17,6 +17,7 @@ class profitModel():
         self.K = K  # book types
         self.c = c  # variable costs
         self.f = f  #fixed costs
+        self.price = 6
 
         self.solvedModel = None
         
@@ -42,7 +43,11 @@ class profitModel():
         Y_WU = model.addVars(self.W, self.U, vtype=GRB.BINARY, name = 'Y_WU')
 
         model.setObjective(
-            gb.quicksum([
+            self.price * (gb.quicksum(
+                [X_WU[w,u,k] 
+                 for k in self.K for u in self.U for w in self.W]
+            ))
+            - (gb.quicksum([
                         gb.quicksum([self.c[p,w] * X_PW[p,w,k] for k in self.K]) 
                          + (self.f[p,w] * Y_PW[p,w]) 
                          for p in self.P for w in self.W
@@ -51,8 +56,8 @@ class profitModel():
                         gb.quicksum([self.c[w,u] * X_WU[w,u,k] for k in self.K]) 
                          + (self.f[w,u] * Y_WU[w,u]) 
                          for u in self.U for w in self.W
-                         ])
-            , GRB.MINIMIZE
+                         ]))
+            , GRB.MAXIMIZE
         )
 
 
