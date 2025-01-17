@@ -77,7 +77,7 @@ class profitModels():
                     <= self.supply[p,k]
                 )
 
-        # Demand must be met
+        # Demand must be met or 0 in case the company choses not to fore
         for u in self.U:
             for k in self.K:
                 model.addConstr(
@@ -152,3 +152,63 @@ class profitModels():
         self.solvedModel = model
 
         return model
+
+
+    def visualize_results(self):
+            G = nx.DiGraph()
+
+            # Add nodes for printers, warehouses, and universities
+            G.add_nodes_from(self.W, type="Warehouse", color="blue")
+            G.add_nodes_from(self.P, type="Printer", color="green")
+            G.add_nodes_from(self.U, type="University", color="red")
+
+            # Dictionary to store aggregated flow values for edge labels
+            edge_flows = {}
+
+            # Add edges for flows from printers to warehouses
+            for (p, w, k), flow in self.x_pw_values.items():
+                if (p, w) not in edge_flows:
+                    edge_flows[(p, w)] = 0
+                edge_flows[(p, w)] += flow
+                G.add_edge(p, w, color="black")  # Add edge without weight for visualization
+
+            # Add edges for flows from warehouses to universities
+            for (w, u, k), flow in self.x_wu_values.items():
+                if (w, u) not in edge_flows:
+                    edge_flows[(w, u)] = 0
+                edge_flows[(w, u)] += flow
+                G.add_edge(w, u, color="black")  # Add edge without weight for visualization
+
+            # Define positions for nodes
+            pos = {}
+            for idx, p in enumerate(self.P):
+                pos[p] = (0, idx)
+            for idx, w in enumerate(self.W):
+                pos[w] = (1, idx - len(self.W) // 2)
+            for idx, u in enumerate(self.U):
+                pos[u] = (2, idx - len(self.U) // 2)
+
+            # Create edge labels based on aggregated flows
+            edge_labels = {edge: f"{flow:.2f}" for edge, flow in edge_flows.items()}
+
+            # Draw nodes
+            colors = [data['color'] for _, data in G.nodes(data=True)]
+            nx.draw_networkx_nodes(G, pos, node_color=colors, node_size=500)
+
+            # Draw edges
+            edge_colors = [G[u][v]['color'] for u, v in G.edges]
+            nx.draw_networkx_edges(G, pos, edge_color=edge_colors)
+
+                # Draw labels
+            nx.draw_networkx_labels(G, pos)
+            nx.draw_networkx_edge_labels(
+                G,
+                pos,
+                edge_labels=edge_labels,
+                font_size=8,
+                label_pos=0.65,  # Position of the label along the edge (0.5 is default)
+                bbox=dict(boxstyle="round,pad=0.3", edgecolor="none", facecolor="white", alpha=0.7),
+            )
+
+            plt.title("Optimization Results: Flow and Connections")
+            plt.show()

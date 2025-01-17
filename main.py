@@ -4,6 +4,7 @@ from Initial_Cost_Model_simple import costModel_PW_WU
 from CostsCalc import Costs
 from allocateCosts import allocateCost
 from Collab_2_1_b_c import collaboration
+from compete_2_2 import Competition
 import time
 
 demandData = demandFile('./given_data/demanddata.xlsx')
@@ -48,10 +49,16 @@ fCost = fixedCost('./given_data/fixedcosts.xlsx')
 
 ## 1.2 Allocate Costs ##
 
-# shapleyValues = allocateCost(demandData.U)
-# print(shapleyValues.shapleyValues)
+shapleyValues_UB = allocateCost(demandData.U)
+print(shapleyValues_UB.shapleyValues)
 
 
 ## 2.1 Collaboration ##
 
-shapelys = collaboration(demandData,vCost,fCost)
+#shapelys = collaboration(demandData,vCost,fCost)
+
+
+# 2.2 Competition ##
+
+# bestResponse = Competition()
+# bestResponse.bestResponseUBFirst()
