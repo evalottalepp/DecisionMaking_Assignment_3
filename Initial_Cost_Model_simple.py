@@ -35,6 +35,8 @@ class costModel_PW_WU():
 
     def model(self):
 
+        print(self.c[self.P[0],self.W[0]])
+
         model = gb.Model('Cost Model')
 
         X_PW = model.addVars(self.P,self.W,self.K, vtype=GRB.INTEGER, lb=0, name = 'X_PW')
@@ -140,9 +142,6 @@ class costModel_PW_WU():
         self.x_wu_values_all = {key: var.X for key, var in X_WU.items()}
         self.y_pw_values_all = {key: var.X for key, var in Y_PW.items()}
         self.y_wu_values_all = {key: var.X for key, var in Y_WU.items()}
-
-        print(self.x_pw_values_all)
-        print(self.y_pw_values_all)
 
 
         self.x_pw_values = {key: var.X for key, var in X_PW.items() if var.X > 0}

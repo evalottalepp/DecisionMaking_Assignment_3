@@ -37,11 +37,11 @@ class demandFile():
 
 class fixedCost():
     def __init__(self,path):
-        self.fixedCost = pd.read_excel(path).to_numpy()
+        self.fixedCost = pd.read_excel(path).iloc[:,1:].to_numpy()
 
 class varCost():
     def __init__(self,path):
-        self.varCost = pd.read_excel(path).to_numpy()
+        self.varCost = pd.read_excel(path).iloc[:,1:].to_numpy()
     def __repr__(self):
         return print(self.varCost)
     def __str__(self):
