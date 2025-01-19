@@ -30,10 +30,10 @@ simpleModel = costModel_PW_WU(
 model  = simpleModel.model()
 
 
-simpleModel.summarize_results()
+# simpleModel.summarize_results()
 
 #simpleModel.visualize_results()
-simpleModel.visualize_network(model)
+# simpleModel.visualize_network(model)
 
 # end = time.time()
 
