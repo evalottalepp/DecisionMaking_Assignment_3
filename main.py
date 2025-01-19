@@ -14,24 +14,26 @@ fCost = fixedCost('./given_data/fixedcosts.xlsx')
 
 # start = time.time()
 
-# simpleModel = costModel_PW_WU(
-#     W = demandData.W,  ## Removes the cross docks
-#     P = demandData.P,
-#     cap = demandData.capacity,
-#     U = demandData.U,   ## Change this to which universities you want, give it a list
-#     K = demandData.K,
-#     c = vCost.varCost,
-#     f = fCost.fixedCost,
-#     demand = demandData.demand,
-#     supply = demandData.supply
-# )
+simpleModel = costModel_PW_WU(
+    W = demandData.W[:2],  ## Removes the cross docks
+    P = demandData.P,
+    cap = demandData.capacity,
+    U = demandData.U,   ## Change this to which universities you want, give it a list
+    K = demandData.K,
+    c = vCost.varCost,
+    f = fCost.fixedCost,
+    demand = demandData.demand,
+    supply = demandData.supply
+)
 
 
-# model  = simpleModel.model()
+model  = simpleModel.model()
 
-# simpleModel.visualize_results()
 
-# simpleModel.summarize_results()
+simpleModel.summarize_results()
+
+#simpleModel.visualize_results()
+simpleModel.visualize_network(model)
 
 # end = time.time()
 
@@ -49,8 +51,8 @@ fCost = fixedCost('./given_data/fixedcosts.xlsx')
 
 ## 1.2 Allocate Costs ##
 
-shapleyValues_UB = allocateCost(demandData.U)
-print(shapleyValues_UB.shapleyValues)
+# shapleyValues_UB = allocateCost(demandData.U)
+# print(shapleyValues_UB.shapleyValues)
 
 
 ## 2.1 Collaboration ##
