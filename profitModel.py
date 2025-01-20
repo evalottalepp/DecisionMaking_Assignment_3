@@ -82,7 +82,7 @@ class profitModels():
             for k in self.K:
                 model.addConstr(
                     gb.quicksum([X_WU[w,u,k] for w in self.W])
-                    <= self.demand[u,k]
+                    <= self.demand[u,k] * Y_WU[w,u]
                 )
 
         # Cannot send more than handled by warehouse
