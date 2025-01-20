@@ -52,7 +52,7 @@ class allocateCost():
 
                 columnUniv = permutation[i]
 
-                self.marginalTable.loc[str(permutation),columnUniv] = int(marginal)
+                self.marginalTable.loc[str(permutation),columnUniv] = marginal
 
         self.meanMarginals = self.marginalTable.mean(axis=0).to_dict()
             
@@ -79,12 +79,14 @@ class allocateCost():
         self.allUniversityCost()
 
         shapleyValues = {}
+        print("MARGINAL", self.marginalTable)
         for u in self.U:
             marginal = self.meanMarginals[u]
             aloneCost = self.totalDict[u]
 
             saving = aloneCost - marginal
             shapleyValues[u] = saving
+        print("SHAPELY", shapleyValues)
         return shapleyValues
         
 
