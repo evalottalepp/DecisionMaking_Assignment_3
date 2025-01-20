@@ -333,5 +333,5 @@ class costModel_PW_WU():
         )
 
         plt.subplots_adjust(top=0.9)
-
+        #plt.savefig('figures/Network_simple_1701.png')
         plt.show()
