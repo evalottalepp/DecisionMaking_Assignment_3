@@ -42,28 +42,19 @@ class Competition:
                 new_Demand = self.demand #to initialize
 
             SE_attempt = self.runModel(new_Demand,SE_warehouse)
-           
             SE_profit_old = SE_profit
-            print("SE_Profit_old = ", SE_profit_old)
-
             SE_profit = SE_attempt[0]
-           
             SE_strat = SE_attempt[1]
             new_Demand = SE_attempt[2]
-            print(f'SE_Profit {SE_profit}, SE_Strategy {SE_strat}, demand after SE attempt {new_Demand}')
+            print(f'SE_Profit_old = {SE_profit_old}, SE_profit_ol, SE_Profit {SE_profit}, SE_Strategy {SE_strat}, demand after SE attempt {new_Demand}')
 
            
             UB_attempt = self.runModel(new_Demand,UB_warehouse)
-            
             UB_profit_old = UB_profit
-            print("UB_Profit_old = ", UB_profit_old)
-            
             UB_profit = UB_attempt[0]
             UB_strat = UB_attempt[1]
             new_Demand = UB_attempt[2]
-
-            print(f'UB_Profit {UB_profit}, UB_Strategy {UB_strat}, demand after UB attempt{new_Demand}')
-
+            print(f'"UB_Profit_old = {UB_profit_old}, UB_profit_old, UB_Profit {UB_profit}, UB_Strategy {UB_strat}, demand after UB attempt{new_Demand}')
 
             
             #CHECK = self.runModel(self.demand,UB_warehouse)
