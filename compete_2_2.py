@@ -41,7 +41,7 @@ class Competition:
             if UB_profit == 0:
                 new_Demand = self.demand #to initialize
 
-            SE_attempt = self.runModel(new_Demand,SE_warehouse,False)
+            SE_attempt = self.runModel(new_Demand,SE_warehouse)
            
             SE_profit_old = SE_profit
             print("SE_Profit_old = ", SE_profit_old)
@@ -53,7 +53,7 @@ class Competition:
             print(f'SE_Profit {SE_profit}, SE_Strategy {SE_strat}, demand after SE attempt {new_Demand}')
 
            
-            UB_attempt = self.runModel(new_Demand,UB_warehouse,True) # model that goes first get the floor division (so potentially 1 more book per flow)
+            UB_attempt = self.runModel(new_Demand,UB_warehouse)
             
             UB_profit_old = UB_profit
             print("UB_Profit_old = ", UB_profit_old)
@@ -72,7 +72,7 @@ class Competition:
        
 
 
-    def runModel(self,givenDemand,warehouses,floor):
+    def runModel(self,givenDemand,warehouses):
         profitModel = profitModels(
                                         W = warehouses,  ## Removes the cross docks
                                         P = self.demandData.P,
@@ -92,7 +92,7 @@ class Competition:
         # newDemand = self.updateDemand(newStrat)
 
         newStrat = self.updateStrat(profitModel)
-        newDemand = self.updateDemand(newStrat,floor)
+        newDemand = self.updateDemand(newStrat)
 
         profit = model.objVal
 
@@ -114,14 +114,10 @@ class Competition:
             strat[u,k] = 1
         return strat
 
-    def updateDemand(self,strat,floor): #floor boolean added to account for floor & ceiling division to avoid half books
+    def updateDemand(self,strat): #book values are expected values, so calculate with half-books
         
         strat_added_by_one = strat + 1
-        if floor:
-            newDemand = self.demand // strat_added_by_one
-        else:
-            newDemand = np.ceil(self.demand / strat_added_by_one).astype(int)        
-       
+        newDemand = self.demand / strat_added_by_one
         return newDemand
     
 

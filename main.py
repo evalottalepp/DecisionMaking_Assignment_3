@@ -117,5 +117,5 @@ plt.show()
 
 # 2.2 Competition ##
 
-# bestResponse = Competition()
-# bestResponse.bestResponseUBFirst()
+bestResponse = Competition()
+bestResponse.bestResponseUBFirst()
