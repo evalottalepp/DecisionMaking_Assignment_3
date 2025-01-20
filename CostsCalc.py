@@ -12,43 +12,49 @@ class Costs():
         self.Y_WU = self.modelClass.y_wu_values_all
 
 
-        self.U_Costs = {} 
-        for u in self.modelClass.U:
-            PW_Cost,WU_Cost = self.calculateCostPerUniversity(u)
-            totalUCost = PW_Cost+WU_Cost
+        # self.U_Costs = {} 
+        # for u in self.modelClass.U:
+        #     PW_Cost,WU_Cost = self.calculateCostPerUniversity(u)
+        #     totalUCost = PW_Cost+WU_Cost
 
-            self.U_Costs[u] = [round(totalUCost,2),round(PW_Cost,2),round(WU_Cost,2)]
+        #     self.U_Costs[u] = [round(totalUCost,2),round(PW_Cost,2),round(WU_Cost,2)]
 
 
+    def calculateCostPerUniversity(self, u):
+        model = self.modelClass
+        model.set_U([u])
+        model_one_uni = model.model()
+        obj = model_one_uni.ObjVal
         
+        return obj
 
     
-    def calculateCostPerUniversity(self,u):
+    # def calculateCostPerUniversity(self,u):
 
-        PW_Cost = 0
-        WU_Cost = 0 
+    #     PW_Cost = 0
+    #     WU_Cost = 0 
 
-        for w in self.modelClass.W:
-            # Printers
-            for p in self.modelClass.P:
-                fixedCost = self.modelClass.f[p,w] * self.Y_PW[p,w]
-                varCost = 0
-                for k in self.modelClass.K:
-                    varCost += self.X_PW[p,w,k]
-                varCost = varCost * self.modelClass.c[p,w]
+    #     for w in self.modelClass.W:
+    #         # Printers
+    #         for p in self.modelClass.P:
+    #             fixedCost = self.modelClass.f[p,w] * self.Y_PW[p,w]
+    #             varCost = 0
+    #             for k in self.modelClass.K:
+    #                 varCost += self.X_PW[p,w,k]
+    #             varCost = varCost * self.modelClass.c[p,w]
 
-                PW_Cost += fixedCost + varCost
+    #             PW_Cost += fixedCost + varCost
 
-            # University
-            fixedCost = self.modelClass.f[w,u] * self.Y_WU[w,u]
-            varCost = 0
-            for k in self.modelClass.K:
-                varCost += self.X_WU[w,u,k]
-            varCost = varCost * self.modelClass.c[w,u]
+    #         # University
+    #         fixedCost = self.modelClass.f[w,u] * self.Y_WU[w,u]
+    #         varCost = 0
+    #         for k in self.modelClass.K:
+    #             varCost += self.X_WU[w,u,k]
+    #         varCost = varCost * self.modelClass.c[w,u]
 
-            WU_Cost += fixedCost + varCost
+    #         WU_Cost += fixedCost + varCost
             
-        return PW_Cost,WU_Cost
+    #     return PW_Cost,WU_Cost
 
          
     

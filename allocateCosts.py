@@ -7,9 +7,11 @@ from CostsCalc import Costs
 
 
 
-class allocateCost():
-    def __init__(self,U):
+class AllocateCost:
+    # Company is either 'UB' - Uni Books or 'BI' - Book Import. It is used to understand which warehouses to utilize.
+    def __init__(self,U,company):
         self.U = U
+        self.company = company
         self.allPermutations = list(permutations(U))
 
         self.costDict = {}
@@ -22,17 +24,21 @@ class allocateCost():
         self.vCost = varCost('./given_data/variablecosts.xlsx')
         self.fCost = fixedCost('./given_data/fixedcosts.xlsx') 
 
-        self.shapleyValues = self.getShapleyValues()
+        self.shapleySavings = self.getShapleyValues()
 
     def permutationCosts(self):
         
+        if self.company == 'UB':
+            warehouses = self.demandData.W[:2]
+        else: 
+            warehouses = self.demandData.W[2:]
         for permutation in self.allPermutations:
             permutationCost = 0
             marginalDict = {}
             for i in range(len(permutation)):
                 intermeditateU = list(permutation[:i+1])
                 simpleModel = costModel_PW_WU(
-                                                W = self.demandData.W[:2],  ## Removes the cross docks
+                                                W = warehouses,  ## Removes the cross docks
                                                 P = self.demandData.P,
                                                 cap = self.demandData.capacity,
                                                 U = intermeditateU,   ## Change this to which universities you want, give it a list
@@ -54,40 +60,43 @@ class allocateCost():
 
                 self.marginalTable.loc[str(permutation),columnUniv] = marginal
 
-        self.meanMarginals = self.marginalTable.mean(axis=0).to_dict()
+        self.shapleyCosts = self.marginalTable.mean(axis=0).to_dict()
             
     def allUniversityCost(self):
-        self.totalDict = {}
+        self.aloneCosts = {}
+        if self.company == 'UB':
+            warehouses = self.demandData.W[:2]
+        else: 
+            warehouses = self.demandData.W[2:]
         for u in self.U:
-                    simpleModel = costModel_PW_WU(
-                                                W = self.demandData.W[:2],  ## Removes the cross docks
-                                                P = self.demandData.P,
-                                                cap = self.demandData.capacity,
-                                                U = [u],   ## Change this to which universities you want, give it a list
-                                                K = self.demandData.K,
-                                                c = self.vCost.varCost,
-                                                f = self.fCost.fixedCost,
-                                                demand = self.demandData.demand,
-                                                supply = self.demandData.supply
-                                            )
-                    model = simpleModel.model()
-                    cost = model.objVal
-                    self.totalDict[u] = cost
+            simpleModel = costModel_PW_WU(
+                                        W = warehouses,
+                                        P = self.demandData.P,
+                                        cap = self.demandData.capacity,
+                                        U = [u],   ## Change this to which universities you want, give it a list
+                                        K = self.demandData.K,
+                                        c = self.vCost.varCost,
+                                        f = self.fCost.fixedCost,
+                                        demand = self.demandData.demand,
+                                        supply = self.demandData.supply
+                                    )
+            model = simpleModel.model()
+            cost = model.objVal
+            self.aloneCosts[u] = cost
     
     def getShapleyValues(self):
         self.permutationCosts()
         self.allUniversityCost()
 
-        shapleyValues = {}
-        print("MARGINAL", self.marginalTable)
+        print("Shapley costs: ", self.shapleyCosts)
+        savings = {}
         for u in self.U:
-            marginal = self.meanMarginals[u]
-            aloneCost = self.totalDict[u]
+            marginal = self.shapleyCosts[u]
+            aloneCost = self.aloneCosts[u]
 
             saving = aloneCost - marginal
-            shapleyValues[u] = saving
-        print("SHAPELY", shapleyValues)
-        return shapleyValues
+            savings[u] = saving
+        return savings
         
 
         

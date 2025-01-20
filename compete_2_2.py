@@ -3,7 +3,7 @@ from DataLoading import *
 from InitialCostModel import costModel_complete
 from Initial_Cost_Model_simple import costModel_PW_WU
 from CostsCalc import Costs
-from allocateCosts import allocateCost
+from allocateCosts import AllocateCost
 import time
 import networkx as nx
 import matplotlib.pyplot as plt
