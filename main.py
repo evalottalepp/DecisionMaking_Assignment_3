@@ -34,90 +34,91 @@ model_UB.visualize_network(model)
 """
 1.2a - COMPARE INDIVIDUAL UNIVERSITIES WITH THE SOLUTION OF ALL UNIVERSITIES
 """
-U = model_UB.U
-modelCosts = Costs(model_UB)
-uni_costs = {key: 0 for key in U}
-for u in U:
-    obj = modelCosts.calculateCostPerUniversity(u)
-    uni_costs[u] = obj
+# U = model_UB.U
+# modelCosts = Costs(model_UB)
+# uni_costs = {key: 0 for key in U}
+# for u in U:
+#     obj = modelCosts.calculateCostPerUniversity(u)
+#     uni_costs[u] = obj
 
-modelCosts.costs_per_uni = uni_costs
+# modelCosts.costs_per_uni = uni_costs
 
 
-uni_numbers = [key for key in uni_costs]
-uni_values = [uni_costs[key] for key in uni_numbers]
-uni_numbers = [model_UB.map_pwu(num) for num in uni_numbers]
-total_cost = model.objVal
-average_cost = total_cost / len(uni_numbers)
+# uni_numbers = [key for key in uni_costs]
+# uni_values = [uni_costs[key] for key in uni_numbers]
+# uni_numbers = [model_UB.map_pwu(num) for num in uni_numbers]
+# total_cost = model.objVal
+# average_cost = total_cost / len(uni_numbers)
 
-# Plotting the single university costs and comparing them to total_cost*0.2 (i.e. expected average)
-plt.rcParams.update({'font.size': 16})
+# # Plotting the single university costs and comparing them to total_cost*0.2 (i.e. expected average)
+# plt.rcParams.update({'font.size': 16})
 
-plt.figure(figsize=(10,6))
-bars = plt.bar(uni_numbers, uni_values, color='skyblue', label='Cost per Customer', width=0.5)
-plt.axhline(y=average_cost, color='red', linestyle='--', linewidth=2, label=f'Average Cost ({average_cost:.2f})')
+# plt.figure(figsize=(10,6))
+# bars = plt.bar(uni_numbers, uni_values, color='skyblue', label='Cost per Customer', width=0.5)
+# plt.axhline(y=average_cost, color='red', linestyle='--', linewidth=2, label=f'Average Cost ({average_cost:.2f})')
 
-for bar, cost in zip(bars, uni_values):
-    deviation = cost - average_cost
-    deviation_label = f'{cost:.2f} ({deviation:+.2f})'
-    plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 5, deviation_label, 
-             ha='center', va='bottom', fontsize=10, color='black')
+# for bar, cost in zip(bars, uni_values):
+#     deviation = cost - average_cost
+#     deviation_label = f'{cost:.2f} ({deviation:+.2f})'
+#     plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 5, deviation_label, 
+#              ha='center', va='bottom', fontsize=10, color='black')
 
-plt.xlabel('University')
-plt.ylabel('Cost')
-plt.xticks(uni_numbers, fontsize=12)
-plt.yticks(fontsize=12)
+# plt.xlabel('University')
+# plt.ylabel('Cost')
+# plt.xticks(uni_numbers, fontsize=12)
+# plt.yticks(fontsize=12)
 
-ax = plt.gca()
+# ax = plt.gca()
 
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
+# ax.spines['top'].set_visible(False)
+# ax.spines['right'].set_visible(False)
 
-plt.legend(fontsize=12)
+# plt.legend(fontsize=12)
 
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-plt.tight_layout()
-plt.savefig('figures/universities_of_total.png')
-plt.show()
+# plt.grid(axis='y', linestyle='--', alpha=0.7)
+# plt.tight_layout()
+# plt.savefig('figures/universities_of_total.png')
+# plt.show()
 
-model_UB.set_U(U)
+# model_UB.set_U(U)
 
 """
 # 1.2c - Fairly distribute savings accross all universities
 # """
-# def distributeCosts(company, model):
-#     shapleyValues = AllocateCost(demandData.U, company)
-#     print(shapleyValues.shapleySavings)
+def distributeCosts(company, model):
+    shapleyValues = AllocateCost(model.U, company)
+    print(shapleyValues.shapleySavings)
 
-#     data = pd.DataFrame({
-#         "University": [model.map_pwu(u) for u in demandData.U],
-#         "Initial Cost": list(shapleyValues.aloneCosts.values()),
-#         "Shapley Cost": list(shapleyValues.shapleyCosts.values())
-#     })
-#     data["Savings"] = data["Initial Cost"] - data["Shapley Cost"]
-#     data["% Savings"] = (data["Savings"] / data["Initial Cost"]) * 100
+    data = pd.DataFrame({
+        "University": [model.map_pwu(u) for u in model.U],
+        "Initial Cost": list(shapleyValues.aloneCosts.values()),
+        "Shapley Cost": list(shapleyValues.shapleyCosts.values()),
+        "Demand": list(sum(model.demand[u]) for u in model.U)
+    })
+    data["Savings"] = data["Initial Cost"] - data["Shapley Cost"]
+    data["% Savings"] = (data["Savings"] / data["Initial Cost"]) * 100
 
-#     print(data.round(2))
+    print(data.round(2))
 
-#     return data
+    return data
 
 # UB_costs_table = distributeCosts('UB', model_UB)
 
 
-# """
-# 1.2e - cost allocation for Book Import SE
-# """
-# model_BI = costModel_PW_WU(
-#     W = demandData.W[2:],  # Keep only cross-docks
-#     P = demandData.P,
-#     cap = demandData.capacity,
-#     U = demandData.U,
-#     K = demandData.K,
-#     c = vCost.varCost,
-#     f = fCost.fixedCost,
-#     demand = demandData.demand,
-#     supply = demandData.supply
-# )
+"""
+1.2e - cost allocation for Book Import SE
+"""
+model_BI = costModel_PW_WU(
+    W = demandData.W[2:],  # Keep only cross-docks
+    P = demandData.P,
+    cap = demandData.capacity,
+    U = demandData.U,
+    K = demandData.K,
+    c = vCost.varCost,
+    f = fCost.fixedCost,
+    demand = demandData.demand,
+    supply = demandData.supply
+)
 
 # model  = model_BI.model()
 # model_BI.summarize_results()
@@ -154,6 +155,31 @@ model_UB.set_U(U)
 # plt.tight_layout()
 # plt.savefig('figures/company_price_comparison.png')
 # plt.show()
+
+"""
+1.2f - Each university is served by the company offering cheaper costs
+"""
+BI_customers = [10, 12] # Universities U3 and U5
+UB_customers = [8, 9, 11] # Universities U1, U2 and U4
+
+model_BI.set_U(BI_customers)
+model_UB.set_U(UB_customers)
+
+model_gurobi_BI = model_BI.model()
+mode_gurobi_UB = model_UB.model()
+
+model_BI.visualize_network(model_gurobi_BI)
+model_UB.visualize_network(mode_gurobi_UB)
+
+modelCosts_BI = Costs(model_BI)
+
+BI_costs_table = distributeCosts('BI', model_BI)
+
+modelCosts_UB = Costs(model_UB)
+
+UB_costs_table = distributeCosts('UB', model_UB)
+
+
 ## 2.1 Collaboration ##
 
 #shapelys = collaboration(demandData,vCost,fCost)
