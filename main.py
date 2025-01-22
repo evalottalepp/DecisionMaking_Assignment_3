@@ -104,6 +104,38 @@ def distributeCosts(company, model):
 
 # UB_costs_table = distributeCosts('UB', model_UB)
 
+"""
+1.2d - path changes for single university vs coalition
+"""
+U = model_UB.U
+all_single_flow_labels = {}
+all_single_links = []
+for u in U:
+    model_UB.set_U([u])
+    single_u_model = model_UB.model()
+    single_flow_labels = model_UB.visualize_network(single_u_model, plot=False)
+    single_links = list(single_flow_labels.keys())
+    for key, value in single_flow_labels.items():
+        if key in all_single_flow_labels:
+            for book_type, count in value.items():
+                all_single_flow_labels[key][book_type] = (
+                    all_single_flow_labels[key].get(book_type, 0) + count
+                )
+        else:
+            all_single_flow_labels[key] = value
+    all_single_links = all_single_links + single_links
+
+model_UB.set_U(U)
+coalition_model = model_UB.model()
+together_flow_labels = model_UB.visualize_network(coalition_model, plot=False)
+together_links = list(together_flow_labels.keys())
+
+print(all_single_flow_labels)
+print(all_single_links)
+print(together_flow_labels)
+print(together_links)
+model_UB.network_comparison(all_single_flow_labels, together_flow_labels, all_single_links, together_links)
+
 
 """
 1.2e - cost allocation for Book Import SE
@@ -168,8 +200,8 @@ model_UB.set_U(UB_customers)
 model_gurobi_BI = model_BI.model()
 mode_gurobi_UB = model_UB.model()
 
-model_BI.visualize_network(model_gurobi_BI)
-model_UB.visualize_network(mode_gurobi_UB)
+#model_BI.visualize_network(model_gurobi_BI)
+#model_UB.visualize_network(mode_gurobi_UB)
 
 modelCosts_BI = Costs(model_BI)
 
