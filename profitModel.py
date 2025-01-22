@@ -18,6 +18,7 @@ class profitModels():
         self.c = c  # variable costs
         self.f = f  #fixed costs
         self.price = 6
+        
 
         self.solvedModel = None
         
@@ -27,6 +28,9 @@ class profitModels():
         self.edges = [(i,j) for i in range(self.nLocations) for j in range(self.nLocations)]
         self.bookEdges = [(i,j,k) for i in range(self.nLocations) for j in range(self.nLocations) for k in self.K]
 
+        self.mapper_pwu = {0: "P1", 1: "P2", 2: "P3", 3: "W1", 4: "W2", 5: "C1", 6: "C2", 
+                            7: "C3", 8: "U1", 9: "U2", 10: "U3", 11: "U4", 12: "U5"}
+        self.mapper_b = {0: "1", 1: "2", 2: "3", 3: "4", 4: "5", 5: "6"}
     
     def set_U(self,U):
         self.U = U
@@ -35,8 +39,8 @@ class profitModels():
 
         model = gb.Model('Cost Model')
 
-        X_PW = model.addVars(self.P,self.W,self.K, vtype=GRB.INTEGER, lb=0, name = 'X_PW')
-        X_WU = model.addVars(self.W, self.U,self.K, vtype=GRB.INTEGER, lb=0, name = 'X_WU')
+        X_PW = model.addVars(self.P,self.W,self.K, vtype=GRB.CONTINUOUS, lb=0, name = 'X_PW')
+        X_WU = model.addVars(self.W, self.U,self.K, vtype=GRB.CONTINUOUS, lb=0, name = 'X_WU')
 
         
         Y_PW = model.addVars(self.P,self.W, vtype=GRB.BINARY, name = 'Y_PW')
@@ -82,7 +86,7 @@ class profitModels():
             for k in self.K:
                 model.addConstr(
                     gb.quicksum([X_WU[w,u,k] for w in self.W])
-                    == self.demand[u,k]
+                    <= self.demand[u,k]
                 )
 
         # Cannot send more than handled by warehouse
@@ -135,7 +139,7 @@ class profitModels():
         #                         == 0
         #                         )
 
-        
+        model.setParam('OutputFlag', 0)
         model.optimize()
 
         self.x_pw_values_all = {key: var.X for key, var in X_PW.items()}
@@ -153,62 +157,96 @@ class profitModels():
 
         return model
 
+    def map_pwu(self, id):
+            return self.mapper_pwu.get(id)
+    
+    def map_book(self, id):
+        return self.mapper_b.get(id)
+    
+    def visualize_network(self, model, printer = True):
+        links = []
+        flow_labels = {}
 
-    def visualize_results(self):
-            G = nx.DiGraph()
+        node_labels = {}
+        book_labels = {}
 
-            # Add nodes for printers, warehouses, and universities
-            G.add_nodes_from(self.W, type="Warehouse", color="blue")
-            G.add_nodes_from(self.P, type="Printer", color="green")
-            G.add_nodes_from(self.U, type="University", color="red")
-
-            # Dictionary to store aggregated flow values for edge labels
-            edge_flows = {}
-
-            # Add edges for flows from printers to warehouses
+        for p in self.P:
+            node_labels[p] = self.map_pwu(p)
+        for w in self.W:
+            node_labels[w] = self.map_pwu(w)
+        for u in self.U:
+            node_labels[u] = self.map_pwu(u)
+        for k in self.K:
+            book_labels[k] = self.map_book(k)
+        
+        printers = set()
+        warehouses = set()
+        universities = set()
+        if model.status == GRB.OPTIMAL:
+            objective_value = model.objVal
+            
             for (p, w, k), flow in self.x_pw_values.items():
-                if (p, w) not in edge_flows:
-                    edge_flows[(p, w)] = 0
-                edge_flows[(p, w)] += flow
-                G.add_edge(p, w, color="black")  # Add edge without weight for visualization
+                printers.add(p)
+                warehouses.add(w)
+                key = (p, w)
+                links.append(key)
 
-            # Add edges for flows from warehouses to universities
+                if key not in flow_labels:
+                    flow_labels[key] = []
+                flow_labels[key].append(f'{book_labels[k]}: {flow}')
+                if printer:
+                    print(f'Flow from printer {self.map_pwu(p)} to warehouse {self.map_pwu(w)} for book {self.map_book(k)}: {flow}')
+
             for (w, u, k), flow in self.x_wu_values.items():
-                if (w, u) not in edge_flows:
-                    edge_flows[(w, u)] = 0
-                edge_flows[(w, u)] += flow
-                G.add_edge(w, u, color="black")  # Add edge without weight for visualization
+                warehouses.add(w)
+                universities.add(u)
+                key = (w, u)
+                links.append(key)
 
-            # Define positions for nodes
-            pos = {}
-            for idx, p in enumerate(self.P):
-                pos[p] = (0, idx)
-            for idx, w in enumerate(self.W):
-                pos[w] = (1, idx - len(self.W) // 2)
-            for idx, u in enumerate(self.U):
-                pos[u] = (2, idx - len(self.U) // 2)
+                if key not in flow_labels:
+                    flow_labels[key] = []
+                flow_labels[key].append(f'{book_labels[k]}: {flow}')
+                if printer:
+                    print(f'Flow from warehouse {self.map_pwu(w)} to university {self.map_pwu(u)} for book {self.map_book(k)}: {flow}')
 
-            # Create edge labels based on aggregated flows
-            edge_labels = {edge: f"{flow:.2f}" for edge, flow in edge_flows.items()}
+        G = nx.DiGraph()
+        G.add_nodes_from(printers | warehouses | universities)
+        G.add_edges_from(links)
 
-            # Draw nodes
-            colors = [data['color'] for _, data in G.nodes(data=True)]
-            nx.draw_networkx_nodes(G, pos, node_color=colors, node_size=500)
+        total_nodes = len(printers) + len(warehouses) + len(universities)
 
-            # Draw edges
-            edge_colors = [G[u][v]['color'] for u, v in G.edges]
-            nx.draw_networkx_edges(G, pos, edge_color=edge_colors)
+        def calculate_positions(total_nodes, count, row_index):
+            horizontal_spacing = total_nodes / count 
+            return [((i + 0.5) * horizontal_spacing, row_index) for i in range(count)]
 
-                # Draw labels
-            nx.draw_networkx_labels(G, pos)
-            nx.draw_networkx_edge_labels(
-                G,
-                pos,
-                edge_labels=edge_labels,
-                font_size=8,
-                label_pos=0.65,  # Position of the label along the edge (0.5 is default)
-                bbox=dict(boxstyle="round,pad=0.3", edgecolor="none", facecolor="white", alpha=0.7),
-            )
+        pos = {}
+        printer_positions = calculate_positions(total_nodes, len(printers), 2)
+        warehouse_positions = calculate_positions(total_nodes, len(warehouses), 1)
+        university_positions = calculate_positions(total_nodes, len(universities), 0)
 
-            plt.title("Optimization Results: Flow and Connections")
-            plt.show()
+        for idx, p in enumerate(printers):
+            pos[p] = printer_positions[idx]
+        for idx, w in enumerate(warehouses):
+            pos[w] = warehouse_positions[idx]
+        for idx, u in enumerate(universities):
+            pos[u] = university_positions[idx]
+
+        formatted_labels = {key: '\n'.join(value) for key, value in flow_labels.items()}
+        visual_labels = {node: node_labels[node] for node in G.nodes}
+
+        plt.figure(figsize=(12,5))
+        plt.title(f'Network with objective value: {objective_value}')
+
+        nx.draw(
+            G, pos, labels=visual_labels, with_labels=True, node_size=300, node_color='lightblue', font_size=10, 
+            font_weight='bold', edge_color='gray'
+        )
+
+        # Add edge labels (flows for each book type)
+        nx.draw_networkx_edge_labels(
+            G, pos, edge_labels=formatted_labels, font_size=8, label_pos=0.5, font_color='darkgreen'
+        )
+
+        plt.subplots_adjust(top=0.9)
+
+        plt.show()

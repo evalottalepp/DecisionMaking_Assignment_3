@@ -135,7 +135,7 @@ class costModel_PW_WU():
         #                         == 0
         #                         )
 
-        
+        model.setParam('OutputFlag', 0)
         model.optimize()
 
         self.x_pw_values_all = {key: var.X for key, var in X_PW.items()}
