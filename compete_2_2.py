@@ -3,11 +3,12 @@ from DataLoading import *
 from InitialCostModel import costModel_complete
 from Initial_Cost_Model_simple import costModel_PW_WU
 from CostsCalc import Costs
-from allocateCosts import AllocateCost
+from allocateCosts import allocateCost
 import time
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Competition:
     def __init__(self):
@@ -19,49 +20,133 @@ class Competition:
 
     def bestResponseUBFirst(self):
         
-        UB_profit, SE_profit = 0,0
+        profitList = [[0],[0]]
+        counterList = [0,1]
+
+        UB_profit, SE_profit,UB_profit_old,SE_profit_old = 0,0,0,0
         UB_warehouse, SE_warehouse = self.demandData.W[:2],self.demandData.W[2:]
-
-        ##### UB Going First
-
-        # initial_UB = self.runModel(self.demand,UB_warehouse)
-    
-        UB_profit_old = 0
-        # UB_profit = initial_UB[0]
-        SE_profit_old = 0
-
+        
         counter = 0
     
         print("We start the best response algorithm")
 
+        # Initialize UB going first
+        initial_UB = self.runModel(self.demand,UB_warehouse)
+        UB_profit = initial_UB[0]
+        new_Demand = initial_UB[2]
+        profitList[0].append(UB_profit)
+        profitList[1].append(SE_profit)
 
-        while UB_profit == 0 or not (UB_profit_old == UB_profit and SE_profit_old == SE_profit):
-            print(counter)
-           
-            if UB_profit == 0:
-                new_Demand = self.demand #to initialize
+        while not ((UB_profit_old == UB_profit) and (SE_profit_old == SE_profit)):
+            counter +=1
+            print(f'---------------------Iteration: {counter} --------------------')
 
+            ### SE makes it's plan based off of UB's allocation ##
+            
             SE_attempt = self.runModel(new_Demand,SE_warehouse)
+           
+
             SE_profit_old = SE_profit
+            
+            print("SE_Profit_old = ", SE_profit_old)
+
             SE_profit = SE_attempt[0]
+           
             SE_strat = SE_attempt[1]
             new_Demand = SE_attempt[2]
-            print(f'SE_Profit_old = {SE_profit_old}, SE_profit_ol, SE_Profit {SE_profit}, SE_Strategy {SE_strat}, demand after SE attempt {new_Demand}')
+            print(f'UB_Profit: {int(UB_profit)}, SE_Profit: {int(SE_profit)}')
+            print(f'SE_Strategy {SE_strat[7:]}')
+            print(f'demand after SE attempt {new_Demand[7:]}')
+            # print(f'Fulfilled: \n {self.demandFulfillment(new_Demand)}')
 
-           
-            UB_attempt = self.runModel(new_Demand,UB_warehouse)
+           ## Now UB Turn to Respond ##
+            UB_attempt = self.runModel(new_Demand,UB_warehouse) 
             UB_profit_old = UB_profit
+            print("UB_Profit_old = ", UB_profit_old)
+            
             UB_profit = UB_attempt[0]
             UB_strat = UB_attempt[1]
             new_Demand = UB_attempt[2]
-            print(f'"UB_Profit_old = {UB_profit_old}, UB_profit_old, UB_Profit {UB_profit}, UB_Strategy {UB_strat}, demand after UB attempt{new_Demand}')
 
-            
-            #CHECK = self.runModel(self.demand,UB_warehouse)
+            print(f'UB_Profit: {int(UB_profit)}, SE_Profit: {int(SE_profit)}')
+            print(f'UB_Strategy {UB_strat[7:]}') 
+            print(f'demand after UB attempt{new_Demand[7:]}')
+            # print(f'Fulfilled: \n {self.demandFulfillment(new_Demand)}')
+
+            profitList[0].append(UB_profit)
+            profitList[1].append(SE_profit)
+            counterList.append(counter)
 
             counter +=1
-       
 
+        self.plotProfits(profitList,counterList)
+
+    def bestResponseSEFirst(self):
+        
+        profitList = [[0],[0]]
+        counterList = [0,1]
+
+        UB_profit, SE_profit,UB_profit_old,SE_profit_old = 0,0,0,0
+        UB_warehouse, SE_warehouse = self.demandData.W[:2],self.demandData.W[2:]
+        
+        counter = 0
+    
+        print("We start the best response algorithm")
+
+        # Initialize UB going first
+        initial_SE = self.runModel(self.demand,SE_warehouse)
+        UB_profit = initial_SE[0]
+        new_Demand = initial_SE[2]
+        profitList[0].append(UB_profit)
+        profitList[1].append(SE_profit)
+
+        while not ((UB_profit_old == UB_profit) and (SE_profit_old == SE_profit)):
+            counter +=1
+            print(f'---------------------Iteration: {counter} --------------------')
+
+            UB_attempt = self.runModel(new_Demand,UB_warehouse) 
+            
+            UB_profit_old = UB_profit
+            print("UB_Profit_old = ", UB_profit_old)
+            
+            UB_profit = UB_attempt[0]
+            UB_strat = UB_attempt[1]
+            new_Demand = UB_attempt[2]
+
+            print(f'UB_Profit: {int(UB_profit)}, SE_Profit: {int(SE_profit)}')
+            print(f'UB_Strategy {UB_strat[7:]}') 
+            print(f'demand after UB attempt{new_Demand[7:]}')
+            # print(f'Fulfilled: \n {self.demandFulfillment(new_Demand)}')
+
+            SE_attempt = self.runModel(new_Demand,SE_warehouse)
+           
+
+            SE_profit_old = SE_profit
+            
+            print("SE_Profit_old = ", SE_profit_old)
+
+            SE_profit = SE_attempt[0]
+           
+            SE_strat = SE_attempt[1]
+            new_Demand = SE_attempt[2]
+            print(f'UB_Profit: {int(UB_profit)}, SE_Profit: {int(SE_profit)}')
+            print(f'SE_Strategy {SE_strat[7:]}')
+            print(f'demand after SE attempt {new_Demand[7:]}')
+            # print(f'Fulfilled: \n {self.demandFulfillment(new_Demand)}')
+
+
+            profitList[0].append(UB_profit)
+            profitList[1].append(SE_profit)
+            counterList.append(counter)
+
+            counter +=1
+
+        self.plotProfits(profitList,counterList)   
+
+    def plotProfits(self,profitList,counterList):
+        plt.plot(counterList,profitList[0])
+        plt.plot(counterList,profitList[1])
+        plt.show()
 
     def runModel(self,givenDemand,warehouses):
         profitModel = profitModels(
@@ -77,7 +162,7 @@ class Competition:
                                     )
     
         model  = profitModel.model()
-        profitModel.visualize_results()
+        profitModel.visualize_network(model,False)
 
         # newStrat = self.updateStrat(model)
         # newDemand = self.updateDemand(newStrat)
@@ -105,11 +190,16 @@ class Competition:
             strat[u,k] = 1
         return strat
 
-    def updateDemand(self,strat): #book values are expected values, so calculate with half-books
+    def updateDemand(self,strat):
         
         strat_added_by_one = strat + 1
+
         newDemand = self.demand / strat_added_by_one
+
         return newDemand
+    
+    def demandFulfillment(self,newDemand):
+        return (newDemand[8:])/(self.demand[8:])
     
 
     def visualize_results(self):
