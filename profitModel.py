@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import itertools
 
-class profitModels():
+class ProfitModels:
     def __init__(self,W,P,cap,U,K,c,f,demand,supply):
         self.W = W  # warehouses
         self.P = P  # printers
