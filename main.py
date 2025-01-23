@@ -2,7 +2,7 @@ from DataLoading import *
 from InitialCostModel import costModel_complete
 from Initial_Cost_Model_simple import costModel_PW_WU
 from CostsCalc import Costs
-from allocateCosts import allocateCost
+from allocateCosts import AllocateCost
 from Collab_2_1_b_c import collaboration
 from compete_2_2 import Competition
 import time
@@ -14,7 +14,7 @@ fCost = fixedCost('./given_data/fixedcosts.xlsx')
 
 # start = time.time()
 
-simpleModel = costModel_PW_WU(
+model_UB = costModel_PW_WU(
     W = demandData.W[:2],  ## Removes the cross docks
     P = demandData.P,
     cap = demandData.capacity,
@@ -27,19 +27,19 @@ simpleModel = costModel_PW_WU(
 )
 
 
-model  = simpleModel.model()
+model  = model_UB.model()
 
 
-# simpleModel.summarize_results()
+# model_UB.summarize_results()
 
-#simpleModel.visualize_results()
-# simpleModel.visualize_network(model)
+#model_UB.visualize_results()
+# model_UB.visualize_network(model)
 
 # end = time.time()
 
 # print(f'Time for Model: {(end-start)}')
 
-# modelCosts = Costs(simpleModel)
+# modelCosts = Costs(model_UB)
 
 # uniCosts = pd.DataFrame(modelCosts.U_Costs).transpose()
 # uniCosts.columns = ['Total Cost', 'Printer To Warehouse', 'Warehouse to University']
@@ -200,8 +200,8 @@ UB_costs_table = distributeCosts('UB', model_UB)
 
 # 2.2 Competition ##
 
-bestResponse = Competition()
-bestResponse.bestResponseUBFirst()
-bestResponse.bestResponseSEFirst()
+# bestResponse = Competition()
+# bestResponse.bestResponseUBFirst()
+# bestResponse.bestResponseSEFirst()
 
 # bestResponse.testProfitModel()

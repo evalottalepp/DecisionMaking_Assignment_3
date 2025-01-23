@@ -3,7 +3,6 @@ from DataLoading import *
 from InitialCostModel import costModel_complete
 from Initial_Cost_Model_simple import costModel_PW_WU
 from CostsCalc import Costs
-from allocateCosts import allocateCost
 import time
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -193,9 +192,7 @@ class Competition:
     def updateDemand(self,strat):
         
         strat_added_by_one = strat + 1
-
         newDemand = self.demand / strat_added_by_one
-
         return newDemand
     
     def demandFulfillment(self,newDemand):
@@ -260,4 +257,3 @@ class Competition:
 
         plt.title("Optimization Results: Flow and Connections")
         plt.show()
-
