@@ -12,7 +12,6 @@ class collaboration():
         self.SE_C = self.demandData.W[2:]
 
         self.UB_model = self.makeUB_model()
-
         self.SE_model = self.makeSE_model()
         self.bothModel = self.makeCombineModel()
 
@@ -63,9 +62,10 @@ class collaboration():
     def getTotalProfit(self):
 
         costModel = self.bothModel.model()
-        totalCosts = costModel.objVal 
+        totalCosts = costModel.objVal
+
         jointProfit = self.totalRevenue - totalCosts
-        print(f'TotalCost from Combined Model: {totalCosts}, TotalRevenue from Combined ModeL: {jointProfit+totalCosts}')       
+
         return jointProfit
 
 
@@ -83,8 +83,6 @@ class collaboration():
         SE_Shapley = 0.5 * (SE_profit + (jointProfit - UB_profit))
 
         if UB_Shapley + SE_Shapley == jointProfit:
-            print(f'UBcost: {UBcost}, SEcost: {SEcost}')
-            print(f'UBRevenuge: {UBcost+UB_profit} ,SERevenue: {SEcost+SE_profit}')
             print(f'Individual Profits - UB:{int(UB_profit)}, SE:{int(SE_profit)}, joint profit of {int(jointProfit)}')
             print(f'Shapley Values - UB:{int(UB_Shapley)}, SE:{int(SE_Shapley)}, out of a joint profit of {int(jointProfit)}')
             return {'UB':UB_Shapley, 'SE': SE_Shapley}
@@ -92,3 +90,4 @@ class collaboration():
         else:
             print('Error')
             print(f'Shapley Values - UB:{UB_Shapley}, SE:{SE_Shapley}, out of a joint profit of {jointProfit}')
+

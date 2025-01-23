@@ -39,8 +39,8 @@ class costModel_PW_WU():
 
         model = gb.Model('Cost Model')
 
-        X_PW = model.addVars(self.P,self.W,self.K, vtype=GRB.CONTINUOUS, lb=0, name = 'X_PW') #set to continuous after Layla indicated in class, that book values could be fractions
-        X_WU = model.addVars(self.W, self.U,self.K, vtype=GRB.CONTINUOUS, lb=0, name = 'X_WU')
+        X_PW = model.addVars(self.P,self.W,self.K, vtype=GRB.INTEGER, lb=0, name = 'X_PW')
+        X_WU = model.addVars(self.W, self.U,self.K, vtype=GRB.INTEGER, lb=0, name = 'X_WU')
 
         
         Y_PW = model.addVars(self.P,self.W, vtype=GRB.BINARY, name = 'Y_PW')
@@ -135,7 +135,7 @@ class costModel_PW_WU():
         #                         == 0
         #                         )
 
-        
+        model.setParam('OutputFlag', 0)
         model.optimize()
 
         self.x_pw_values_all = {key: var.X for key, var in X_PW.items()}
@@ -443,6 +443,3 @@ class costModel_PW_WU():
             G, pos=pos, edge_labels=edge_labels,
             font_size=8, label_pos=0.5
         )
-
-        plt.savefig('figures/network_changes.png')
-        plt.show()
