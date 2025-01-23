@@ -17,8 +17,13 @@ class Competition:
         self.fCost = fixedCost('./given_data/fixedcosts.xlsx') 
         # demandData.printFile()
 
-    def bestResponse(self,UB_warehouse, whoFirst = 'UB', printer = False):
+    def bestResponse(self,UB_warehouse, whoFirst = 'UB', printer = False ,price=6):
         
+        if price != 6:
+            percentSplit = self.demandSplit(price)
+        else:
+            percentSplit = 0.5
+
         if whoFirst == 'UB':
             profitList = [[0],[0]]
             counterList = [0,1]
@@ -29,11 +34,8 @@ class Competition:
             SE_warehouse = self.demandData.W[2:]
             
             counter = 0
-        
-            # print("We start the best response algorithm")
-
             # Initialize UB going first
-            initial_UB = self.runModel(self.demand,UB_warehouse)
+            initial_UB = self.runModel(self.demand,UB_warehouse,price=price,reduceBy=percentSplit)
             UB_profit = initial_UB[0]
             new_Demand = initial_UB[2]
             profitList[0].append(UB_profit)
@@ -41,21 +43,14 @@ class Competition:
 
             while not ((UB_profit_old == UB_profit) and (SE_profit_old == SE_profit)):
                 counter +=1
-                
-
                 ### SE makes it's plan based off of UB's allocation ##
-                
-                SE_attempt = self.runModel(new_Demand,SE_warehouse)
+                SE_attempt = self.runModel(new_Demand,SE_warehouse,reduceBy=(1-percentSplit))
             
-
                 SE_profit_old = SE_profit
-                
-                # print("SE_Profit_old = ", SE_profit_old)
-
                 SE_profit = SE_attempt[0]
-            
                 SE_strat = SE_attempt[1]
                 new_Demand = SE_attempt[2]
+                
                 if printer:
                     print(f'---------------------Iteration: {counter} --------------------')
                     print(f'UB_Profit: {int(UB_profit)}, SE_Profit: {int(SE_profit)}')
@@ -64,7 +59,7 @@ class Competition:
                     # print(f'Fulfilled: \n {self.demandFulfillment(new_Demand)}')
 
             ## Now UB Turn to Respond ##
-                UB_attempt = self.runModel(new_Demand,UB_warehouse) 
+                UB_attempt = self.runModel(new_Demand,UB_warehouse,price=price,reduceBy=percentSplit) 
                 UB_profit_old = UB_profit
 
                 
@@ -98,21 +93,18 @@ class Competition:
             # print("We start the best response algorithm")
 
             # Initialize UB going first
-            initial_SE = self.runModel(self.demand,SE_warehouse)
-            UB_profit = initial_SE[0]
+            initial_SE = self.runModel(self.demand,SE_warehouse,reduceBy=(1-percentSplit))
+            SE_profit = initial_SE[0]
             new_Demand = initial_SE[2]
             profitList[0].append(UB_profit)
             profitList[1].append(SE_profit)
 
             while not ((UB_profit_old == UB_profit) and (SE_profit_old == SE_profit)):
                 counter +=1
-                
-
-                UB_attempt = self.runModel(new_Demand,UB_warehouse) 
+            
+                UB_attempt = self.runModel(new_Demand,UB_warehouse,price=price,reduceBy=percentSplit) 
                 
                 UB_profit_old = UB_profit
-             
-                
                 UB_profit = UB_attempt[0]
                 UB_strat = UB_attempt[1]
                 new_Demand = UB_attempt[2]
@@ -124,15 +116,10 @@ class Competition:
                     print(f'demand after UB attempt{new_Demand[7:]}')
                     # print(f'Fulfilled: \n {self.demandFulfillment(new_Demand)}')
 
-                SE_attempt = self.runModel(new_Demand,SE_warehouse)
+                SE_attempt = self.runModel(new_Demand,SE_warehouse,reduceBy=(1-percentSplit))
             
-
                 SE_profit_old = SE_profit
-                
-
-
                 SE_profit = SE_attempt[0]
-            
                 SE_strat = SE_attempt[1]
                 new_Demand = SE_attempt[2]
                 
@@ -141,7 +128,6 @@ class Competition:
                     print(f'SE_Strategy {SE_strat[7:]}')
                     print(f'demand after SE attempt {new_Demand[7:]}')
                     # print(f'Fulfilled: \n {self.demandFulfillment(new_Demand)}')
-
 
                 profitList[0].append(UB_profit)
                 profitList[1].append(SE_profit)
@@ -158,7 +144,12 @@ class Competition:
         plt.plot(counterList,profitList[1])
         plt.show()
 
-    def runModel(self,givenDemand,warehouses,printer=False):
+    def demandSplit(self,newPrice):
+        z = newPrice/6
+        return 0.5 + (1-z) / 2
+
+
+    def runModel(self,givenDemand,warehouses,printer=False,price=6,reduceBy=0.5):
         profitModel = ProfitModels(
                                         W = warehouses,  ## Removes the cross docks
                                         P = self.demandData.P,
@@ -168,18 +159,19 @@ class Competition:
                                         c = self.vCost.varCost,
                                         f = self.fCost.fixedCost,
                                         demand = givenDemand,
-                                        supply = self.demandData.supply
+                                        supply = self.demandData.supply,
+                                        price = price
                                     )
     
         model  = profitModel.model()
-        if printer:
-            profitModel.visualize_network(model,False)
+        # if printer:
+            # profitModel.visualize_network(model,False)
 
         # newStrat = self.updateStrat(model)
         # newDemand = self.updateDemand(newStrat)
 
         newStrat = self.updateStrat(profitModel)
-        newDemand = self.updateDemand(newStrat)
+        newDemand = self.updateDemand(newStrat, reduceBy = reduceBy)
 
         profit = model.objVal
 
@@ -201,10 +193,13 @@ class Competition:
             strat[u,k] = 1
         return strat
 
-    def updateDemand(self,strat):
-        
-        strat_added_by_one = strat + 1
-        newDemand = self.demand / strat_added_by_one
+    def updateDemand(self,strat, reduceBy = 0.5):
+        npDemand = np.array(self.demand)
+        npStrat = np.array(strat)
+
+        adjustment = np.where(strat == 1, 1 - reduceBy , 1)
+    
+        newDemand = npDemand * adjustment
         return newDemand
     
     def demandFulfillment(self,newDemand):

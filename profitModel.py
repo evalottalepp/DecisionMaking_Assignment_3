@@ -7,7 +7,7 @@ import pandas as pd
 import itertools
 
 class ProfitModels:
-    def __init__(self,W,P,cap,U,K,c,f,demand,supply):
+    def __init__(self,W,P,cap,U,K,c,f,demand,supply,price=6):
         self.W = W  # warehouses
         self.P = P  # printers
         self.supply = supply
@@ -17,7 +17,7 @@ class ProfitModels:
         self.K = K  # book types
         self.c = c  # variable costs
         self.f = f  #fixed costs
-        self.price = 6
+        self.price = price
         
 
         self.solvedModel = None

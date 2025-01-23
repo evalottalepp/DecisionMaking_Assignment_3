@@ -198,36 +198,57 @@ model  = model_UB.model()
 # #shapelys = collaboration(demandData,vCost,fCost)
 
 
-## 2.2 Competition ##
-result ={}
-bestResponse = Competition()
-UB_First = bestResponse.bestResponse(bestResponse.demandData.W[:2],whoFirst='UB')
+# ## 2.2 Competition ##
+# result ={}
+# bestResponse = Competition()
+# UB_First = bestResponse.bestResponse(bestResponse.demandData.W[:2],whoFirst='UB')
 
-SE_First = bestResponse.bestResponse(bestResponse.demandData.W[:2],whoFirst='SE')
+# SE_First = bestResponse.bestResponse(bestResponse.demandData.W[:2],whoFirst='SE')
 
-result['Both'] = [UB_First,SE_First]
-# bestResponse.testProfitModel()
-
-
-# # 2.3 
-
-# a)
-
-fewerWarehouses = Competition()
-
-for w in fewerWarehouses.demandData.W[:2]:
-
-    UB_First = fewerWarehouses.bestResponse([w],whoFirst='UB')
-    SE_First = fewerWarehouses.bestResponse([w],whoFirst='SE')
-
-    UB_First[0] = round(UB_First[0] + 200) 
-    SE_First[0] = round(SE_First[0] + 200)
-
-    result[w] = [UB_First,SE_First]
-
-print(pd.DataFrame(result))
+# result['Both'] = [UB_First,SE_First]
+# # bestResponse.testProfitModel()
 
 
-# 
+# # # 2.3 
+
+# # a)
+
+# fewerWarehouses = Competition()
+
+# for w in fewerWarehouses.demandData.W[:2]:
+
+#     UB_First = fewerWarehouses.bestResponse([w],whoFirst='UB')
+#     SE_First = fewerWarehouses.bestResponse([w],whoFirst='SE')
+
+#     UB_First[0] = round(UB_First[0] + 200) 
+#     SE_First[0] = round(SE_First[0] + 200)
+
+#     result[w] = [UB_First,SE_First]
+
+# print(pd.DataFrame(result))
+
+# b)
+
+differentPrice = {}
+
+changingPrice = Competition()
+
+for price in range(0,24,1):
+    price = price/2
+    print(price)
+    UB_First = changingPrice.bestResponse(changingPrice.demandData.W[:2],whoFirst='UB',price=price)
+    SE_First = changingPrice.bestResponse(changingPrice.demandData.W[:2],whoFirst='SE',price=price)
+
+    UB_First = [round(x) for x in UB_First]
+    SE_First= [round(x) for x in SE_First]
+
+    differentPrice[price] = [UB_First,SE_First]
+
+differentPrice = pd.DataFrame(differentPrice).transpose()
+differentPrice.columns = ['UB First','SE_First']
+print(differentPrice)
+
+
+# c)
 
 
