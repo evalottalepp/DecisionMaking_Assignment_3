@@ -250,9 +250,16 @@ class costModel_PW_WU():
         print("\nActive Connections (Warehouses to Universities):")
         print(y_wu_table)
 
-    def visualize_network(self, model):
+    def calculate_positions(self, total_nodes, count, row_index):
+        horizontal_spacing = total_nodes / count 
+        return [((i + 0.5) * horizontal_spacing, row_index) for i in range(count)]
+    
+    def visualize_network(self, model, plot = True):
         links = []
+        wu_links = []
         flow_labels = {}
+        flow_labels_dict = {}
+        wu_flow_labels = {}
 
         node_labels = {}
         book_labels = {}
@@ -280,7 +287,9 @@ class costModel_PW_WU():
 
                 if key not in flow_labels:
                     flow_labels[key] = []
-                flow_labels[key].append(f'{book_labels[k]}: {flow}')
+                    flow_labels_dict[key] = {}
+                flow_labels[key].append(f'{book_labels[k]}: {int(flow)}')
+                flow_labels_dict[key][book_labels[k]] = int(flow)
                 print(f'Flow from printer {self.map_pwu(p)} to warehouse {self.map_pwu(w)} for book {self.map_book(k)}: {flow}')
 
             for (w, u, k), flow in self.x_wu_values.items():
@@ -288,10 +297,14 @@ class costModel_PW_WU():
                 universities.add(u)
                 key = (w, u)
                 links.append(key)
+                wu_links.append(key)
 
                 if key not in flow_labels:
                     flow_labels[key] = []
-                flow_labels[key].append(f'{book_labels[k]}: {flow}')
+                    flow_labels_dict[key] = {}
+
+                flow_labels[key].append(f'{book_labels[k]}: {int(flow)}')
+                flow_labels_dict[key][book_labels[k]] = int(flow)
                 print(f'Flow from warehouse {self.map_pwu(w)} to university {self.map_pwu(u)} for book {self.map_book(k)}: {flow}')
 
         G = nx.DiGraph()
@@ -300,14 +313,10 @@ class costModel_PW_WU():
 
         total_nodes = len(printers) + len(warehouses) + len(universities)
 
-        def calculate_positions(total_nodes, count, row_index):
-            horizontal_spacing = total_nodes / count 
-            return [((i + 0.5) * horizontal_spacing, row_index) for i in range(count)]
-
         pos = {}
-        printer_positions = calculate_positions(total_nodes, len(printers), 2)
-        warehouse_positions = calculate_positions(total_nodes, len(warehouses), 1)
-        university_positions = calculate_positions(total_nodes, len(universities), 0)
+        printer_positions = self.calculate_positions(total_nodes, len(printers), 2)
+        warehouse_positions = self.calculate_positions(total_nodes, len(warehouses), 1)
+        university_positions = self.calculate_positions(total_nodes, len(universities), 0)
 
         for idx, p in enumerate(printers):
             pos[p] = printer_positions[idx]
@@ -319,19 +328,118 @@ class costModel_PW_WU():
         formatted_labels = {key: '\n'.join(value) for key, value in flow_labels.items()}
         visual_labels = {node: node_labels[node] for node in G.nodes}
 
-        plt.figure(figsize=(12,5))
-        plt.title(f'Network with objective value: {objective_value}')
+        if plot: 
+            plt.figure(figsize=(12,5))
+            plt.title(f'Network with objective value: {objective_value}')
 
+            nx.draw(
+                G, pos, labels=visual_labels, with_labels=True, node_size=300, node_color='lightblue', font_size=10, 
+                font_weight='bold', edge_color='gray'
+            )
+
+            # Add edge labels (flows for each book type)
+            nx.draw_networkx_edge_labels(
+                G, pos, edge_labels=formatted_labels, font_size=8, label_pos=0.5, font_color='darkgreen'
+            )
+
+            plt.subplots_adjust(top=0.9)
+            #plt.savefig('figures/Network_UB.png')
+            plt.show()
+
+        return flow_labels_dict
+    
+    # ChatGPT was used for assembling this visualisation 
+    def network_comparison(self, single_flow_labels, together_flow_labels, single_links, together_links):
+        node_labels = {}
+        book_labels = {}
+
+        printers = set()
+        warehouses = set()
+        universities = set()
+
+        for p in self.P:
+            printers.add(p)
+            node_labels[p] = self.map_pwu(p)
+        for w in self.W:
+            warehouses.add(w)
+            node_labels[w] = self.map_pwu(w)
+        for u in self.U:
+            universities.add(u)
+            node_labels[u] = self.map_pwu(u)
+        for k in self.K:
+            book_labels[k] = self.map_book(k)
+        
+        G = nx.DiGraph()
+        G.add_nodes_from(printers | warehouses | universities)
+
+        total_nodes = len(printers) + len(warehouses) + len(universities)
+
+        pos = {}
+        printer_positions = self.calculate_positions(total_nodes, len(printers), 2)
+        warehouse_positions = self.calculate_positions(total_nodes, len(warehouses), 1)
+        university_positions = self.calculate_positions(total_nodes, len(universities), 0)
+
+        for idx, p in enumerate(printers):
+            pos[p] = printer_positions[idx]
+        for idx, w in enumerate(warehouses):
+            pos[w] = warehouse_positions[idx]
+        for idx, u in enumerate(universities):
+            pos[u] = university_positions[idx]
+
+        all_links = set(single_links) | set(together_links)
+
+        edge_colors = []
+        edge_styles = []
+        edge_labels = {}
+
+        for edge in all_links:
+            if edge in together_links and edge not in single_links:
+                edge_colors.append('green')
+                edge_styles.append('solid')
+                coalition_flows = together_flow_labels.get(edge, {})
+                label_parts = [f"{book_type}: 0 → {count} ↑" for book_type, count in sorted(coalition_flows.items())]
+                edge_labels[edge] = "\n".join(label_parts)
+
+            elif edge in single_links and edge not in together_links:
+                edge_colors.append('red')
+                edge_styles.append('dashed')
+                initial_flows = single_flow_labels.get(edge, {})
+                label_parts = [f"{book_type}: {count} → 0 ↓" for book_type, count in sorted(initial_flows.items())]
+                edge_labels[edge] = "\n".join(label_parts)
+
+            else:
+                edge_colors.append('black')
+                edge_styles.append('solid')
+                initial_flows = single_flow_labels.get(edge, [])
+                coalition_flows = together_flow_labels.get(edge, [])
+                
+                label_parts = []
+                for book_type in sorted(set(initial_flows.keys()).union(coalition_flows.keys())):
+                    initial_count = initial_flows.get(book_type, 0)
+                    coalition_count = coalition_flows.get(book_type, 0)
+
+                    if coalition_count > initial_count:
+                        label_parts.append(f"{book_type}: {initial_count} → {coalition_count} ↑")
+                    elif coalition_count < initial_count:
+                        label_parts.append(f"{book_type}: {initial_count} → {coalition_count} ↓")
+                    else:
+                        label_parts.append(f"{book_type}: {coalition_count}")  # No change
+                edge_labels[edge] = "\n".join(label_parts)
+
+        plt.figure(figsize=(14, 6))
         nx.draw(
-            G, pos, labels=visual_labels, with_labels=True, node_size=300, node_color='lightblue', font_size=10, 
-            font_weight='bold', edge_color='gray'
+            G, pos=pos, labels=node_labels, with_labels=True,
+            node_size=300, node_color='lightblue', font_size=10, font_weight='bold'
         )
 
-        # Add edge labels (flows for each book type)
+        for edge, color, style in zip(all_links, edge_colors, edge_styles):
+            nx.draw_networkx_edges(
+                G, pos=pos, edgelist=[edge],
+                edge_color=color, style=style,
+            )
+
+        # Add edge labels
         nx.draw_networkx_edge_labels(
-            G, pos, edge_labels=formatted_labels, font_size=8, label_pos=0.5, font_color='darkgreen'
+            G, pos=pos, edge_labels=edge_labels,
+            font_size=8, label_pos=0.5
         )
-
-        plt.subplots_adjust(top=0.9)
-
-        plt.show()
