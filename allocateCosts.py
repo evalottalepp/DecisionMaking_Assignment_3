@@ -2,17 +2,18 @@ from itertools import permutations
 import pandas as pd
 from DataLoading import *
 from InitialCostModel import costModel_complete
-from Initial_Cost_Model_simple import costModel_PW_WU
+from costModel import costModel_PW_WU
 from CostsCalc import Costs
 
 
 
 class AllocateCost:
     # Company is either 'UB' - Uni Books or 'BI' - Book Import. It is used to understand which warehouses to utilize.
-    def __init__(self,U,company):
+    def __init__(self,U,company='UB',printer=False):
         self.U = U
         self.company = company
         self.allPermutations = list(permutations(U))
+        self.printer = printer
 
         self.costDict = {}
         for item in self.allPermutations:
@@ -53,13 +54,16 @@ class AllocateCost:
                 cost = interModel.objVal
 
                 marginal = cost - permutationCost
-                print(f'{permutation}: {intermeditateU}, CurrentCost:{int(cost)}, Previous Cost:{int(permutationCost)},marginal: {int(marginal)}')
+
                 permutationCost  = cost
 
                 columnUniv = permutation[i]
 
+                self.marginalTable[columnUniv] = self.marginalTable[columnUniv].astype(float)
                 self.marginalTable.loc[str(permutation),columnUniv] = marginal
-
+            if self.printer:
+                    print(f'{permutation}: {self.marginalTable.loc[str(permutation),:]}, ')
+            # print(f'Permutation: {permutation}')
         self.shapleyCosts = self.marginalTable.mean(axis=0).to_dict()
             
     def allUniversityCost(self):
@@ -88,7 +92,7 @@ class AllocateCost:
         self.permutationCosts()
         self.allUniversityCost()
 
-        print("Shapley costs: ", self.shapleyCosts)
+        # print("Shapley costs: ", self.shapleyCosts)
         savings = {}
         for u in self.U:
             marginal = self.shapleyCosts[u]

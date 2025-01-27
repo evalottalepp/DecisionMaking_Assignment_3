@@ -4,7 +4,7 @@ from CostsCalc import Costs
 from allocateCosts import AllocateCost
 from Collab_2_1_b_c import collaboration
 from compete_2_2 import Competition
-import time
+
 import itertools
 from tabulate import tabulate
 import matplotlib.pyplot as plt 

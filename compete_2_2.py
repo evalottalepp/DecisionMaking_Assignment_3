@@ -6,7 +6,7 @@ from CostsCalc import Costs
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 class Competition:
     def __init__(self):

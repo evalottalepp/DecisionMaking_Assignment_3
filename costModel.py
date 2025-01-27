@@ -35,7 +35,7 @@ class costModel_PW_WU():
 
     def model(self):
 
-        print(self.c[self.P[0],self.W[0]])
+        # print(self.c[self.P[0],self.W[0]])
 
         model = gb.Model('Cost Model')
 
@@ -86,7 +86,6 @@ class costModel_PW_WU():
         
 
         # Cannot send more than handled by warehouse
-        ######################### THis is what is stated in the assingment but may not be correct
         for p in self.P: 
             for w in self.W:
                 model.addConstr(
@@ -100,7 +99,6 @@ class costModel_PW_WU():
                 )
 
         # Books sent from warehouse are less than capacity and demand
-        ######################### THis is what is stated in the assingment but may not be correct
         for w in self.W:
             for u in self.U:
                 model.addConstr(
@@ -119,22 +117,6 @@ class costModel_PW_WU():
             model.addConstr(
                 gb.quicksum(X_PW[p,w,k] for p in self.P for k in self.K) <= self.cap[w], name=f"capacity_{w}")
 
-
-
-        # # remove cross docks
-        # crossDocks = self.W[2:]
-        # for c in crossDocks:
-        #     for p in self.P:
-        #         model.addConstr(
-        #                         gb.quicksum([X_PW[p,c,k] for k in self.K])
-        #                         == 0
-        #                         )
-        #     for u in self.U:
-        #         model.addConstr(
-        #                         gb.quicksum([X_WU[c,u,k] for k in self.K])
-        #                         == 0
-        #                         )
-
         model.setParam('OutputFlag', 0)
         model.optimize()
 
@@ -148,8 +130,6 @@ class costModel_PW_WU():
         self.x_wu_values = {key: var.X for key, var in X_WU.items() if var.X > 0}
         self.y_pw_values = {key: var.X for key, var in Y_PW.items() if var.X > 0}
         self.y_wu_values = {key: var.X for key, var in Y_WU.items() if var.X > 0}
-
-        #print(self.x_pw_values)
 
         self.solvedModel = model
 
@@ -238,7 +218,6 @@ class costModel_PW_WU():
                 font_weight='bold', edge_color='gray'
             )
 
-            # Add edge labels (flows for each book type)
             nx.draw_networkx_edge_labels(
                 G, pos, edge_labels=formatted_labels, font_size=8, label_pos=0.5, font_color='darkgreen'
             )
@@ -374,7 +353,6 @@ class costModel_PW_WU():
                 font_weight='bold', edge_color='gray'
             )
 
-            # Add edge labels (flows for each book type)
             nx.draw_networkx_edge_labels(
                 G, pos, edge_labels=formatted_labels, font_size=8, label_pos=0.5, font_color='darkgreen'
             )
@@ -475,7 +453,6 @@ class costModel_PW_WU():
                 edge_color=color, style=style,
             )
 
-        # Add edge labels
         nx.draw_networkx_edge_labels(
             G, pos=pos, edge_labels=edge_labels,
             font_size=8, label_pos=0.5

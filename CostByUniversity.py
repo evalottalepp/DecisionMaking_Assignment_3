@@ -1,6 +1,6 @@
 from DataLoading import *
 from InitialCostModel import costModel_complete
-from Initial_Cost_Model_simple import costModel_PW_WU
+from costModel import costModel_PW_WU
 from CostsCalc import Costs
 
 demandData = demandFile('./given_data/demanddata.xlsx')

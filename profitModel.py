@@ -90,7 +90,6 @@ class ProfitModels:
                 )
 
         # Cannot send more than handled by warehouse
-        ######################### THis is what is stated in the assingment but may not be correct
         for w in self.W:
             for p in self.P: 
                 model.addConstr(
@@ -104,7 +103,6 @@ class ProfitModels:
                 )
 
         # Books sent from warehouse are less than capacity and demand
-        ######################### THis is what is stated in the assingment but may not be correct
         for w in self.W:
             for u in self.U:
                 model.addConstr(
@@ -122,22 +120,6 @@ class ProfitModels:
         for w in self.W:
             model.addConstr(
                 gb.quicksum(X_PW[p,w,k] for p in self.P for k in self.K) <= self.cap[w], name=f"capacity_{w}")
-
-
-
-        # # remove cross docks
-        # crossDocks = self.W[2:]
-        # for c in crossDocks:
-        #     for p in self.P:
-        #         model.addConstr(
-        #                         gb.quicksum([X_PW[p,c,k] for k in self.K])
-        #                         == 0
-        #                         )
-        #     for u in self.U:
-        #         model.addConstr(
-        #                         gb.quicksum([X_WU[c,u,k] for k in self.K])
-        #                         == 0
-        #                         )
 
         model.setParam('OutputFlag', 0)
         model.optimize()
@@ -242,7 +224,6 @@ class ProfitModels:
             font_weight='bold', edge_color='gray'
         )
 
-        # Add edge labels (flows for each book type)
         nx.draw_networkx_edge_labels(
             G, pos, edge_labels=formatted_labels, font_size=8, label_pos=0.5, font_color='darkgreen'
         )

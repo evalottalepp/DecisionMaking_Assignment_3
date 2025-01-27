@@ -1,4 +1,4 @@
-from Initial_Cost_Model_simple import costModel_PW_WU
+from costModel import costModel_PW_WU
 
 class collaboration():
     def __init__(self,demandData,vCost,fCost):
@@ -82,12 +82,8 @@ class collaboration():
         UB_Shapley = 0.5 * (UB_profit + (jointProfit - SE_profit))
         SE_Shapley = 0.5 * (SE_profit + (jointProfit - UB_profit))
 
-        if UB_Shapley + SE_Shapley == jointProfit:
-            print(f'Individual Profits - UB:{int(UB_profit)}, SE:{int(SE_profit)}, joint profit of {int(jointProfit)}')
-            print(f'Shapley Values - UB:{int(UB_Shapley)}, SE:{int(SE_Shapley)}, out of a joint profit of {int(jointProfit)}')
-            return {'UB':UB_Shapley, 'SE': SE_Shapley}
-
-        else:
-            print('Error')
-            print(f'Shapley Values - UB:{UB_Shapley}, SE:{SE_Shapley}, out of a joint profit of {jointProfit}')
+        
+        print(f'Individual Profits - UB:{round(UB_profit)}, SE:{round(SE_profit)}, joint profit of {round(jointProfit)}')
+        print(f'Shapley Values - UB:{round(UB_Shapley)}, SE:{round(SE_Shapley)}, out of a joint profit of {round(jointProfit)}')
+        return {'UB':UB_Shapley, 'SE': SE_Shapley}
 
