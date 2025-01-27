@@ -204,6 +204,29 @@ class Competition:
     def demandFulfillment(self,newDemand):
         return (newDemand[8:])/(self.demand[8:])
     
+    def profit_alone(self):
+        
+        UB_warehouse, SE_warehouse = self.demandData.W[:2],self.demandData.W[2:]
+        
+        SE_attempt = self.runModel(self.demand,SE_warehouse)
+        UB_attempt = self.runModel(self.demand,UB_warehouse)
+
+        UB_strat = UB_attempt[1]
+        SE_strat = SE_attempt[1]
+        print(f'For monopoly markets, UB_profit = {UB_attempt[0]}, SE_profit = {SE_attempt[0]}')
+
+        UB_profit, SE_profit = 0,0
+
+        newDemand_SE = self.updateDemand(SE_strat)
+        newDemand_UB = self.updateDemand(UB_strat)
+
+        SE_attempt = self.runModel(newDemand_SE,SE_warehouse)
+        UB_attempt = self.runModel(newDemand_UB,UB_warehouse)
+
+        UB_profit = UB_attempt[0]
+        SE_profit = SE_attempt[0]
+
+        print(f'Ignoring competition, UB_profit = {UB_profit}, SE_profit = {SE_profit}')
 
     def visualize_results(self):
         G = nx.DiGraph()
