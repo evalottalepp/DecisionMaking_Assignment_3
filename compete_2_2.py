@@ -1,9 +1,8 @@
 from profitModel import ProfitModels
 from DataLoading import *
 from InitialCostModel import costModel_complete
-from Initial_Cost_Model_simple import costModel_PW_WU
+from costModel import costModel_PW_WU
 from CostsCalc import Costs
-import time
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,7 +16,7 @@ class Competition:
         self.fCost = fixedCost('./given_data/fixedcosts.xlsx') 
         # demandData.printFile()
 
-    def bestResponse(self,UB_warehouse, whoFirst = 'UB', printer = False ,price=6):
+    def bestResponse(self,UB_warehouse, whoFirst = 'UB', printer = False ,price=6, UB_Books=[0,1,2,3,4,5]):
         
         if price != 6:
             percentSplit = self.demandSplit(price)
@@ -35,7 +34,7 @@ class Competition:
             
             counter = 0
             # Initialize UB going first
-            initial_UB = self.runModel(self.demand,UB_warehouse,price=price,reduceBy=percentSplit)
+            initial_UB = self.runModel(self.demand,UB_warehouse,price=price,reduceBy=percentSplit,books=UB_Books)
             UB_profit = initial_UB[0]
             new_Demand = initial_UB[2]
             profitList[0].append(UB_profit)
@@ -59,7 +58,7 @@ class Competition:
                     # print(f'Fulfilled: \n {self.demandFulfillment(new_Demand)}')
 
             ## Now UB Turn to Respond ##
-                UB_attempt = self.runModel(new_Demand,UB_warehouse,price=price,reduceBy=percentSplit) 
+                UB_attempt = self.runModel(new_Demand,UB_warehouse,price=price,reduceBy=percentSplit,books=UB_Books) 
                 UB_profit_old = UB_profit
 
                 
@@ -102,7 +101,7 @@ class Competition:
             while not ((UB_profit_old == UB_profit) and (SE_profit_old == SE_profit)):
                 counter +=1
             
-                UB_attempt = self.runModel(new_Demand,UB_warehouse,price=price,reduceBy=percentSplit) 
+                UB_attempt = self.runModel(new_Demand,UB_warehouse,price=price,reduceBy=percentSplit,books=UB_Books) 
                 
                 UB_profit_old = UB_profit
                 UB_profit = UB_attempt[0]
@@ -149,13 +148,13 @@ class Competition:
         return 0.5 + (1-z) / 2
 
 
-    def runModel(self,givenDemand,warehouses,printer=False,price=6,reduceBy=0.5):
+    def runModel(self,givenDemand,warehouses,printer=False,price=6,reduceBy=0.5,books=[0,1,2,3,4,5]):
         profitModel = ProfitModels(
-                                        W = warehouses,  ## Removes the cross docks
+                                        W = warehouses,  
                                         P = self.demandData.P,
                                         cap = self.demandData.capacity,
-                                        U = self.demandData.U,   ## Change this to which universities you want, give it a list
-                                        K = self.demandData.K,
+                                        U = self.demandData.U,   
+                                        K = books,
                                         c = self.vCost.varCost,
                                         f = self.fCost.fixedCost,
                                         demand = givenDemand,
@@ -209,29 +208,24 @@ class Competition:
     def visualize_results(self):
         G = nx.DiGraph()
 
-        # Add nodes for printers, warehouses, and universities
         G.add_nodes_from(self.W, type="Warehouse", color="blue")
         G.add_nodes_from(self.P, type="Printer", color="green")
         G.add_nodes_from(self.U, type="University", color="red")
 
-        # Dictionary to store aggregated flow values for edge labels
         edge_flows = {}
 
-        # Add edges for flows from printers to warehouses
         for (p, w, k), flow in self.x_pw_values.items():
             if (p, w) not in edge_flows:
                 edge_flows[(p, w)] = 0
             edge_flows[(p, w)] += flow
-            G.add_edge(p, w, color="black")  # Add edge without weight for visualization
+            G.add_edge(p, w, color="black") 
 
-        # Add edges for flows from warehouses to universities
         for (w, u, k), flow in self.x_wu_values.items():
             if (w, u) not in edge_flows:
                 edge_flows[(w, u)] = 0
             edge_flows[(w, u)] += flow
-            G.add_edge(w, u, color="black")  # Add edge without weight for visualization
+            G.add_edge(w, u, color="black") 
 
-        # Define positions for nodes
         pos = {}
         for idx, p in enumerate(self.P):
             pos[p] = (0, idx)
@@ -240,25 +234,20 @@ class Competition:
         for idx, u in enumerate(self.U):
             pos[u] = (2, idx - len(self.U) // 2)
 
-        # Create edge labels based on aggregated flows
         edge_labels = {edge: f"{flow:.2f}" for edge, flow in edge_flows.items()}
 
-        # Draw nodes
         colors = [data['color'] for _, data in G.nodes(data=True)]
         nx.draw_networkx_nodes(G, pos, node_color=colors, node_size=500)
 
-        # Draw edges
         edge_colors = [G[u][v]['color'] for u, v in G.edges]
         nx.draw_networkx_edges(G, pos, edge_color=edge_colors)
-
-            # Draw labels
         nx.draw_networkx_labels(G, pos)
         nx.draw_networkx_edge_labels(
             G,
             pos,
             edge_labels=edge_labels,
             font_size=8,
-            label_pos=0.65,  # Position of the label along the edge (0.5 is default)
+            label_pos=0.65, 
             bbox=dict(boxstyle="round,pad=0.3", edgecolor="none", facecolor="white", alpha=0.7),
         )
 
